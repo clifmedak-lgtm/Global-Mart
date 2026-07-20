@@ -1,0 +1,28 @@
+{
+  "name": "my-tech-store",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Static storefront with a simple Node server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "prisma generate",
+    "build:css": "npx tailwindcss -i ./input.css -o ./styles.css",
+    "watch:css": "npx tailwindcss -i ./input.css -o ./styles.css --watch",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:seed": "node prisma/seed.js"
+  },
+  "engines": {},
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.1.4",
+    "express": "^5.2.1",
+    "prisma": "^5.0.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

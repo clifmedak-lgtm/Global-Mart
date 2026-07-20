@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="GlobalMart is a trusted global marketplace for electronics, gaming gear, audio, and networking tools. Discover verified vendors, flash deals, and secure checkout.">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="GlobalMart | The Global Marketplace">
+    <meta property="og:description"
+        content="GlobalMart is a trusted global marketplace for electronics, gaming gear, audio, and networking tools. Discover verified vendors, flash deals, and secure checkout.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#1D4ED8">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8C%90%3C/text%3E%3C/svg%3E">
+    <title>GlobalMart | The Global Marketplace</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body data-page="index" class="bg-gray-50 font-sans text-gray-900">
+    <a href="#main-content"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-blue-600 text-white px-4 py-2 rounded-lg">Skip
+        to content</a>
+
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm" aria-label="Primary navigation">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <div class="text-3xl">🌐</div>
+                        <a href="#" class="text-3xl font-extrabold text-blue-600 tracking-tight">GlobalMart</a>
+                    </div>
+                    <button id="mobile-menu-button"
+                        class="md:hidden inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-100"
+                        aria-expanded="false" aria-controls="mobile-menu" aria-label="Open mobile menu">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+
+                <nav class="hidden md:flex md:items-center md:gap-8">
+                    <a href="#main-content" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Home</a>
+                    <a href="#products" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Products</a>
+                    <a href="#featured" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Deals</a>
+                    <a href="#footer" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Contact</a>
+                </nav>
+
+                <div class="hidden md:flex flex-1 justify-center px-4">
+                    <form id="desktop-search" class="w-full max-w-2xl" role="search">
+                        <label for="desktop-search-input" class="sr-only">Search products</label>
+                        <div
+                            class="flex border border-gray-200 rounded-full overflow-hidden shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                            <input id="desktop-search-input" type="search" class="w-full px-4 py-2 text-sm outline-none"
+                                placeholder="Search phones, brands, or accessories" aria-label="Search products">
+                            <button type="submit"
+                                class="bg-blue-600 px-5 text-white font-semibold text-sm hover:bg-blue-700">Search</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <a id="account-button" href="account.html"
+                        class="hidden sm:flex flex-col text-right text-gray-600 hover:text-blue-600 text-sm">
+                        <span class="text-xs text-gray-400">Welcome back</span>
+                        Account
+                    </a>
+                    <button type="button"
+                        class="open-vendor-modal hidden sm:inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-blue-600">Vendor
+                        sign in</button>
+                    <button id="cart-open-button" type="button"
+                        class="relative flex items-center justify-center text-gray-600 hover:text-blue-600"
+                        aria-label="Open cart">
+                        <span class="text-3xl" aria-hidden="true">🛒</span>
+                        <span id="cart-count"
+                            class="absolute -top-1 -right-2 bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full"
+                            aria-live="polite">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200 bg-white">
+            <div class="space-y-2 px-4 py-4">
+                <a href="#main-content" class="block rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
+                <a href="#products" class="block rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100">Products</a>
+                <a href="#featured" class="block rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100">Deals</a>
+                <a href="#footer" class="block rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100">Contact</a>
+                <a href="account.html" id="mobile-account-button"
+                    class="block rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100 font-semibold">Sign in /
+                    Account</a>
+                <button type="button"
+                    class="open-vendor-modal block w-full text-left rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100">Vendor
+                    sign in</button>
+                <form id="mobile-search" class="mt-3">
+                    <label for="mobile-search-input" class="sr-only">Search products</label>
+                    <div class="flex rounded-full border border-gray-200 overflow-hidden">
+                        <input id="mobile-search-input" type="search" class="w-full px-4 py-2 text-sm outline-none"
+                            placeholder="Search phones, brands, or accessories">
+                        <button type="submit" class="bg-blue-600 px-4 text-white text-sm">Go</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <section class="bg-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-5"
+            style="background: url('https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=1200&q=80'); background-size: cover; background-position: center;">
+        </div>
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col md:flex-row items-center justify-between relative z-10">
+
+            <div class="md:w-1/2 text-center md:text-left z-10">
+                <span class="text-blue-600 font-bold tracking-wider text-sm uppercase mb-4 block">B2B & B2C
+                    E-Commerce</span>
+                <h2 class="text-4xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
+                    The Global Marketplace for <span class="text-blue-600">Everything.</span>
+                </h2>
+                <p class="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl">
+                    Connect with thousands of verified vendors. Source everything from premium electronics to bulk
+                    networking gear with secure payments and global delivery.
+                </p>
+
+                <div class="flex flex-col sm:flex-row justify-center md:justify-start gap-4">
+                    <a href="#products"
+                        class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition transform hover:-translate-y-0.5">
+                        Start Shopping
+                    </a>
+                    <button type="button"
+                        class="open-vendor-modal inline-flex items-center justify-center bg-white border-2 border-gray-300 text-gray-900 hover:border-blue-600 hover:text-blue-600 font-bold py-3 px-8 rounded-lg transition transform hover:-translate-y-0.5">
+                        Open a Vendor Store
+                    </button>
+                </div>
+            </div>
+
+            <div class="md:w-1/2 mt-12 md:mt-0 flex justify-center z-10 w-full">
+                <div class="grid grid-cols-1 gap-4 w-full max-w-lg">
+                    <div
+                        class="relative rounded-3xl overflow-hidden h-96 shadow-lg transform hover:scale-105 transition cursor-pointer">
+                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80"
+                            alt="Premium smartphone display" class="w-full h-full object-cover">
+                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5">
+                            <span class="text-sm font-bold text-white">Featured Phone</span>
+                            <p class="text-xs text-gray-200">Ultra-thin display, fast charging, pro camera.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div
+                            class="bg-blue-50 h-32 rounded-2xl p-4 flex flex-col justify-end transform hover:scale-105 transition cursor-pointer">
+                            <span class="text-sm font-bold text-blue-800">Flash Sale</span>
+                            <span class="text-xs text-blue-600">Up to 40% Off</span>
+                        </div>
+                        <div
+                            class="bg-gray-100 h-32 rounded-2xl p-4 flex flex-col justify-end transform hover:scale-105 transition cursor-pointer">
+                            <span class="text-sm font-bold text-gray-800">New Arrivals</span>
+                            <span class="text-xs text-gray-500">Shop Latest Tech</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="search-panel" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+        <div class="absolute -top-16 -left-16 w-64 h-64 bg-green-100 rounded-full opacity-10 blur-3xl"></div>
+        <div class="rounded-3xl bg-white border border-gray-200 p-6 shadow-sm relative z-10">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Search products</h3>
+                    <p class="text-sm text-gray-500 mt-1">Filter by product name, vendor, or category instantly.</p>
+                </div>
+                <div class="flex-1">
+                    <label for="search-input" class="sr-only">Search product catalog</label>
+                    <input id="search-input" type="search" placeholder="Search phones, brands, or vendors"
+                        class="w-full rounded-full border border-gray-200 px-5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="featured" class="bg-red-50 py-12 border-y border-red-100 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10"
+            style="background: url('https://images.unsplash.com/photo-1552820728-8ac41f1ce891?auto=format&fit=crop&w=1200&q=80'); background-size: cover; background-position: center;">
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
+                <div class="flex items-center gap-4">
+                    <h3 class="text-2xl font-bold text-red-600 flex items-center gap-2">
+                        <span>⚡</span> Flash Sales
+                    </h3>
+                    <div class="flex gap-2 text-white font-bold text-sm">
+                        <span class="bg-gray-900 px-2 py-1 rounded">12h</span>
+                        <span class="text-gray-900">:</span>
+                        <span class="bg-gray-900 px-2 py-1 rounded">45m</span>
+                        <span class="text-gray-900">:</span>
+                        <span class="bg-gray-900 px-2 py-1 rounded">30s</span>
+                    </div>
+                </div>
+                <a href="#" class="text-red-600 hover:text-red-800 font-medium text-sm mt-4 sm:mt-0">See all deals
+                    &rarr;</a>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div
+                    class="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-4 border border-gray-100 relative group cursor-pointer">
+                    <span
+                        class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">-40%</span>
+                    <div class="h-40 rounded-lg mb-4 overflow-hidden bg-gray-100 shadow-inner">
+                        <img src="https://images.unsplash.com/photo-1512499617640-c2f999018b72?auto=format&fit=crop&w=600&q=80"
+                            alt="Samsung Galaxy smartphone" class="w-full h-full object-cover">
+                    </div>
+                    <p class="text-xs text-gray-500 mb-1">TechStore Official</p>
+                    <h4 class="font-bold text-gray-900 text-sm mb-2 line-clamp-2">Samsung Galaxy S24 Ultra - 256GB
+                        Titanium</h4>
+                    <div class="flex items-end gap-2">
+                        <span class="text-lg font-extrabold text-blue-600">650,000 CFA</span>
+                        <span class="text-xs text-gray-400 line-through mb-1">900,000 CFA</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-3">
+                        <div class="bg-red-500 h-1.5 rounded-full" style="width: 85%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Only 5 left!</p>
+                </div>
+
+                <div
+                    class="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-4 border border-gray-100 relative group cursor-pointer">
+                    <span
+                        class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">-25%</span>
+                    <div class="h-40 rounded-lg mb-4 overflow-hidden bg-gray-100 shadow-inner">
+                        <img src="https://images.unsplash.com/photo-1510557880182-3cc453d7f8c5?auto=format&fit=crop&w=600&q=80"
+                            alt="Smart watch and phone" class="w-full h-full object-cover">
+                    </div>
+                    <p class="text-xs text-gray-500 mb-1">GadgetHub</p>
+                    <h4 class="font-bold text-gray-900 text-sm mb-2 line-clamp-2">Smart Watch Pro Series 8 - Waterproof
+                    </h4>
+                    <div class="flex items-end gap-2">
+                        <span class="text-lg font-extrabold text-blue-600">25,000 CFA</span>
+                        <span class="text-xs text-gray-400 line-through mb-1">35,000 CFA</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-3">
+                        <div class="bg-red-500 h-1.5 rounded-full" style="width: 45%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">45 sold today</p>
+                </div>
+
+                <div
+                    class="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-4 border border-gray-100 relative group cursor-pointer">
+                    <span
+                        class="absolute top-2 right-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">New</span>
+                    <div class="h-40 rounded-lg mb-4 overflow-hidden bg-gray-100 shadow-inner">
+                        <img src="https://images.unsplash.com/photo-1512499617640-c2f999018b72?auto=format&fit=crop&w=600&q=80"
+                            alt="Smartphone in hand" class="w-full h-full object-cover">
+                    </div>
+                    <p class="text-xs text-gray-500 mb-1">Mobile World</p>
+                    <h4 class="font-bold text-gray-900 text-sm mb-2 line-clamp-2">iPhone 15 Pro Max - 512GB</h4>
+                    <div class="flex items-end gap-2">
+                        <span class="text-lg font-extrabold text-blue-600">980,000 CFA</span>
+                        <span class="text-xs text-gray-400 line-through mb-1">1,100,000 CFA</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-3">
+                        <div class="bg-blue-600 h-1.5 rounded-full" style="width: 70%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Best seller</p>
+                </div>
+
+                <div
+                    class="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-4 border border-gray-100 relative group cursor-pointer">
+                    <span
+                        class="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">Hot</span>
+                    <div class="h-40 rounded-lg mb-4 overflow-hidden bg-gray-100 shadow-inner">
+                        <img src="https://images.unsplash.com/photo-1598970434795-0c54fe7c0642?auto=format&fit=crop&w=600&q=80"
+                            alt="Android phone close-up" class="w-full h-full object-cover">
+                    </div>
+                    <p class="text-xs text-gray-500 mb-1">PhoneHub</p>
+                    <h4 class="font-bold text-gray-900 text-sm mb-2 line-clamp-2">OnePlus 12 - 256GB</h4>
+                    <div class="flex items-end gap-2">
+                        <span class="text-lg font-extrabold text-blue-600">420,000 CFA</span>
+                        <span class="text-xs text-gray-400 line-through mb-1">550,000 CFA</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-3">
+                        <div class="bg-green-600 h-1.5 rounded-full" style="width: 60%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Limited stock</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <main id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
+        <div class="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-end mb-8 relative z-10">
+            <div>
+                <h3 class="text-2xl font-bold text-gray-900 border-l-4 border-blue-600 pl-3">Top Categories</h3>
+                <p class="text-sm text-gray-500 mt-2">Filter products by category or browse our best sellers.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" data-category="all"
+                    class="category-filter rounded-full border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-semibold text-white">All</button>
+                <button type="button" data-category="phones"
+                    class="category-filter rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700">Phones</button>
+                <button type="button" data-category="android"
+                    class="category-filter rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700">Android</button>
+                <button type="button" data-category="iphone"
+                    class="category-filter rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700">iPhone</button>
+                <button type="button" data-category="consoles"
+                    class="category-filter rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700">Consoles</button>
+                <button type="button" data-category="cases"
+                    class="category-filter rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700">Cases</button>
+                <button type="button" data-category="accessories"
+                    class="category-filter rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700">Accessories</button>
+                <button type="button" data-category="audio"
+                    class="category-filter rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700">Audio</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="group rounded-3xl overflow-hidden shadow-sm hover:shadow-lg bg-white">
+                <img src="https://images.unsplash.com/photo-1510557880182-3cc453d7f8c5?auto=format&fit=crop&w=900&q=80"
+                    alt="Premium smartphone"
+                    class="h-32 w-full object-cover transition duration-500 group-hover:scale-105">
+                <div class="p-5 text-center">
+                    <h4 class="font-bold text-gray-900">Smartphones</h4>
+                    <p class="text-xs text-gray-500 mt-2">Flagship and budget devices.</p>
+                </div>
+            </div>
+
+            <div class="group rounded-3xl overflow-hidden shadow-sm hover:shadow-lg bg-white">
+                <img src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=900&q=80"
+                    alt="Phone accessories"
+                    class="h-32 w-full object-cover transition duration-500 group-hover:scale-105">
+                <div class="p-5 text-center">
+                    <h4 class="font-bold text-gray-900">Accessories</h4>
+                    <p class="text-xs text-gray-500 mt-2">Chargers, cases, headphones.</p>
+                </div>
+            </div>
+
+            <div class="group rounded-3xl overflow-hidden shadow-sm hover:shadow-lg bg-white">
+                <img src="https://images.unsplash.com/photo-1512499617640-c2f999018b72?auto=format&fit=crop&w=900&q=80"
+                    alt="Gaming phone" class="h-32 w-full object-cover transition duration-500 group-hover:scale-105">
+                <div class="p-5 text-center">
+                    <h4 class="font-bold text-gray-900">Gaming Gear</h4>
+                    <p class="text-xs text-gray-500 mt-2">Controllers, accessories, and phones.</p>
+                </div>
+            </div>
+
+            <div class="group rounded-3xl overflow-hidden shadow-sm hover:shadow-lg bg-white">
+                <img src="https://images.unsplash.com/photo-1555617117-08fda8e33aa9?auto=format&fit=crop&w=900&q=80"
+                    alt="Audio gear" class="h-32 w-full object-cover transition duration-500 group-hover:scale-105">
+                <div class="p-5 text-center">
+                    <h4 class="font-bold text-gray-900">Audio</h4>
+                    <p class="text-xs text-gray-500 mt-2">Earbuds, speakers, sound gear.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <section id="products" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Featured products</h2>
+                <p class="text-sm text-gray-500 mt-2">Browse real phones with pricing, vendor info, and quick cart
+                    actions.</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span class="rounded-full bg-green-50 px-3 py-1 text-green-700">Secure</span>
+                <span class="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Fast delivery</span>
+            </div>
+        </div>
+        <div id="products-list" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+            <article
+                class="product-card rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                data-name="samsung galaxy s24 ultra" data-vendor="techstore official" data-category="phones"
+                data-price="650000">
+                <img src="https://images.unsplash.com/photo-1512499617640-c2f999018b72?auto=format&fit=crop&w=900&q=80"
+                    alt="Samsung Galaxy S24 Ultra" class="h-56 w-full object-cover">
+                <div class="p-5">
+                    <p class="text-xs text-gray-500">TechStore Official</p>
+                    <h3 class="mt-3 text-lg font-semibold text-gray-900">Samsung Galaxy S24 Ultra</h3>
+                    <p class="mt-2 text-sm text-gray-500">256GB, pro camera and fast charging.</p>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-lg font-extrabold text-blue-600">650,000 CFA</span>
+                        <span class="text-xs line-through text-gray-400">900,000 CFA</span>
+                    </div>
+                    <button
+                        class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        type="button">Add to cart</button>
+                </div>
+            </article>
+            <article
+                class="product-card rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                data-name="iphone 15 pro max" data-vendor="mobile world" data-category="phones" data-price="980000">
+                <img src="https://images.unsplash.com/photo-1512499617640-c2f999018b72?auto=format&fit=crop&w=900&q=80"
+                    alt="iPhone 15 Pro Max" class="h-56 w-full object-cover">
+                <div class="p-5">
+                    <p class="text-xs text-gray-500">Mobile World</p>
+                    <h3 class="mt-3 text-lg font-semibold text-gray-900">iPhone 15 Pro Max</h3>
+                    <p class="mt-2 text-sm text-gray-500">512GB, titanium finish and ProMotion display.</p>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-lg font-extrabold text-blue-600">980,000 CFA</span>
+                        <span class="text-xs line-through text-gray-400">1,100,000 CFA</span>
+                    </div>
+                    <button
+                        class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        type="button">Add to cart</button>
+                </div>
+            </article>
+            <article
+                class="product-card rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                data-name="oneplus 12" data-vendor="phonehub" data-category="phones" data-price="420000">
+                <img src="https://images.unsplash.com/photo-1598970434795-0c54fe7c0642?auto=format&fit=crop&w=900&q=80"
+                    alt="OnePlus 12" class="h-56 w-full object-cover">
+                <div class="p-5">
+                    <p class="text-xs text-gray-500">PhoneHub</p>
+                    <h3 class="mt-3 text-lg font-semibold text-gray-900">OnePlus 12</h3>
+                    <p class="mt-2 text-sm text-gray-500">256GB, ultra-fast charging and clean Android.</p>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-lg font-extrabold text-blue-600">420,000 CFA</span>
+                        <span class="text-xs line-through text-gray-400">550,000 CFA</span>
+                    </div>
+                    <button
+                        class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        type="button">Add to cart</button>
+                </div>
+            </article>
+            <article
+                class="product-card rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                data-name="google pixel 8 pro" data-vendor="gadgethub" data-category="phones" data-price="510000">
+                <img src="https://images.unsplash.com/photo-1510557880182-3cc453d7f8c5?auto=format&fit=crop&w=900&q=80"
+                    alt="Google Pixel 8 Pro" class="h-56 w-full object-cover">
+                <div class="p-5">
+                    <p class="text-xs text-gray-500">GadgetHub</p>
+                    <h3 class="mt-3 text-lg font-semibold text-gray-900">Google Pixel 8 Pro</h3>
+                    <p class="mt-2 text-sm text-gray-500">128GB, AI camera and clean Android experience.</p>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-lg font-extrabold text-blue-600">510,000 CFA</span>
+                        <span class="text-xs line-through text-gray-400">650,000 CFA</span>
+                    </div>
+                    <button
+                        class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        type="button">Add to cart</button>
+                </div>
+            </article>
+        </div>
+    </section>
+    <section id="gadget-collections" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+        <div class="absolute -top-32 -right-32 w-96 h-96 bg-purple-100 rounded-full opacity-20 blur-3xl"></div>
+        <div class="mb-8 relative z-10">
+            <h2 class="text-3xl font-bold text-gray-900">Explore more gadget collections</h2>
+            <p class="text-sm text-gray-500 mt-2">Browse consoles, Android phones, iPhones, and protective cases with
+                real images and live prices.</p>
+        </div>
+
+        <div class="space-y-10">
+            <div>
+                <div class="flex items-center justify-between gap-4 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">PlayStation 5 deals</h3>
+                        <p class="text-sm text-gray-500">10 console options with instant cart action.</p>
+                    </div>
+                    <span class="text-xs uppercase tracking-[0.18em] text-blue-600 font-semibold">Consoles</span>
+                </div>
+                <div class="flex gap-4 overflow-x-auto pb-4">
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="PS5 Standard Edition" data-vendor="GameHub" data-category="consoles"
+                        data-price="420000">
+                        <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80"
+                            alt="PlayStation 5 Standard Edition" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">GameHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">PS5 Standard Edition</h3>
+                            <p class="mt-2 text-sm text-gray-500">Disc drive console with DualSense controller.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">420,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="PS5 Digital Edition" data-vendor="GameHub" data-category="consoles"
+                        data-price="390000">
+                        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=900&q=80"
+                            alt="PS5 Digital Edition" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">GameHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">PS5 Digital Edition</h3>
+                            <p class="mt-2 text-sm text-gray-500">Sleeker design without a disc drive.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">390,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="PS5 Complete Bundle" data-vendor="Elite Gaming" data-category="consoles"
+                        data-price="470000">
+                        <img src="https://images.unsplash.com/photo-1587202372775-62b73f72d94f?auto=format&fit=crop&w=900&q=80"
+                            alt="PS5 Complete Bundle" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">Elite Gaming</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">PS5 Complete Bundle</h3>
+                            <p class="mt-2 text-sm text-gray-500">Includes controller, game, and headset.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">470,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="PS5 DualSense Bundle" data-vendor="GameHub" data-category="consoles"
+                        data-price="445000">
+                        <img src="https://images.unsplash.com/photo-1619898521679-8d3bc4d4e27c?auto=format&fit=crop&w=900&q=80"
+                            alt="PS5 DualSense Bundle" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">GameHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">PS5 DualSense Bundle</h3>
+                            <p class="mt-2 text-sm text-gray-500">Console with two controllers included.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">445,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="PS5 Extra Storage Kit" data-vendor="ConsolePro" data-category="consoles"
+                        data-price="325000">
+                        <img src="https://images.unsplash.com/photo-1587825140708-44c0ae5c1896?auto=format&fit=crop&w=900&q=80"
+                            alt="PS5 Extra Storage Kit" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">ConsolePro</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">PS5 Storage Kit</h3>
+                            <p class="mt-2 text-sm text-gray-500">Add extra SSD storage for more games.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">325,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="PS5 Racing Package" data-vendor="Elite Gaming" data-category="consoles"
+                        data-price="435000">
+                        <img src="https://images.unsplash.com/photo-1606813904839-4a6ecf9f48f3?auto=format&fit=crop&w=900&q=80"
+                            alt="PS5 Racing Package" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">Elite Gaming</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">PS5 Racing Package</h3>
+                            <p class="mt-2 text-sm text-gray-500">Includes racing wheel and game.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">435,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="PS5 Game Collection" data-vendor="GameHub" data-category="consoles"
+                        data-price="290000">
+                        <img src="https://images.unsplash.com/photo-1604739072026-9675a1c9cc8c?auto=format&fit=crop&w=900&q=80"
+                            alt="PS5 Game Collection" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">GameHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">PS5 Game Collection</h3>
+                            <p class="mt-2 text-sm text-gray-500">Top titles preloaded in one bundle.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">290,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="PS5 Headset Bundle" data-vendor="ConsolePro" data-category="consoles"
+                        data-price="250000">
+                        <img src="https://images.unsplash.com/photo-1511447333011-0b016c4db75f?auto=format&fit=crop&w=900&q=80"
+                            alt="PS5 Headset Bundle" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">ConsolePro</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">PS5 Headset Bundle</h3>
+                            <p class="mt-2 text-sm text-gray-500">Immersive audio with built-in mic.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">250,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="PS5 Storage & Controller" data-vendor="Elite Gaming" data-category="consoles"
+                        data-price="365000">
+                        <img src="https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=900&q=80"
+                            alt="PS5 Storage & Controller" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">Elite Gaming</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">PS5 Storage & Controller</h3>
+                            <p class="mt-2 text-sm text-gray-500">Extra controller plus SSD storage pack.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">365,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between gap-4 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">Android phones</h3>
+                        <p class="text-sm text-gray-500">10 modern Android handsets with reliable pricing.</p>
+                    </div>
+                    <span class="text-xs uppercase tracking-[0.18em] text-blue-600 font-semibold">Android</span>
+                </div>
+                <div class="flex gap-4 overflow-x-auto pb-4">
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Samsung Galaxy S24" data-vendor="TechStore Official" data-category="android"
+                        data-price="540000">
+                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80"
+                            alt="Samsung Galaxy S24" class="h-52 w-full object-cover">
+                        <div class="p-4 flex flex-col h-full">
+                            <div class="flex-1">
+                                <p class="text-xs text-gray-500">TechStore Official</p>
+                                <h3 class="mt-3 text-lg font-semibold text-gray-900">Samsung Galaxy S24</h3>
+                                <p class="mt-2 text-sm text-gray-500">200MP camera with flagship performance.</p>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between gap-3">
+                                <span class="text-lg font-extrabold text-blue-600">540,000 CFA</span>
+                                <button
+                                    class="add-cart rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                    type="button">Add to cart</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="OnePlus 12 Pro" data-vendor="PhoneHub" data-category="android" data-price="470000">
+                        <img src="https://images.unsplash.com/photo-1520496528342-85f6ba1261f2?auto=format&fit=crop&w=900&q=80"
+                            alt="OnePlus 12 Pro" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">PhoneHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">OnePlus 12 Pro</h3>
+                            <p class="mt-2 text-sm text-gray-500">Fast charging and clean OxygenOS.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">470,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Xiaomi 14 Pro" data-vendor="GadgetHub" data-category="android" data-price="360000">
+                        <img src="https://images.unsplash.com/photo-1526413237998-1f88d0fbc675?auto=format&fit=crop&w=900&q=80"
+                            alt="Xiaomi 14 Pro" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">GadgetHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Xiaomi 14 Pro</h3>
+                            <p class="mt-2 text-sm text-gray-500">Premium screen with fast performance.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">360,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Oppo Find X6" data-vendor="Mobile World" data-category="android" data-price="425000">
+                        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=900&q=80"
+                            alt="Oppo Find X6" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">Mobile World</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Oppo Find X6</h3>
+                            <p class="mt-2 text-sm text-gray-500">Edge-to-edge display and 5G.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">425,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Realme GT 6" data-vendor="GadgetHub" data-category="android" data-price="280000">
+                        <img src="https://images.unsplash.com/photo-1512499617640-c2f999018b72?auto=format&fit=crop&w=900&q=80"
+                            alt="Realme GT 6" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">GadgetHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Realme GT 6</h3>
+                            <p class="mt-2 text-sm text-gray-500">Performance phone with bold style.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">280,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Vivo X100" data-vendor="Mobile World" data-category="android" data-price="315000">
+                        <img src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=900&q=80"
+                            alt="Vivo X100" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">Mobile World</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Vivo X100</h3>
+                            <p class="mt-2 text-sm text-gray-500">Stylish hardware and great battery life.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">315,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Motorola Edge 50" data-vendor="PhoneHub" data-category="android" data-price="255000">
+                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80"
+                            alt="Motorola Edge 50" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">PhoneHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Motorola Edge 50</h3>
+                            <p class="mt-2 text-sm text-gray-500">Amazing display and long battery life.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">255,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Sony Xperia 1 V" data-vendor="GadgetHub" data-category="android" data-price="455000">
+                        <img src="https://images.unsplash.com/photo-1520496528342-85f6ba1261f2?auto=format&fit=crop&w=900&q=80"
+                            alt="Sony Xperia 1 V" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">GadgetHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Sony Xperia 1 V</h3>
+                            <p class="mt-2 text-sm text-gray-500">Cinematic display and premium camera.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">455,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between gap-4 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">iPhones</h3>
+                        <p class="text-sm text-gray-500">10 Apple models with premium finishes and deals.</p>
+                    </div>
+                    <span class="text-xs uppercase tracking-[0.18em] text-blue-600 font-semibold">iPhone</span>
+                </div>
+                <div class="flex gap-4 overflow-x-auto pb-4">
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="iPhone 15 Pro" data-vendor="Mobile World" data-category="iphone" data-price="980000">
+                        <img src="https://images.unsplash.com/photo-1512499617640-c2f999018b72?auto=format&fit=crop&w=900&q=80"
+                            alt="iPhone 15 Pro" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">Mobile World</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">iPhone 15 Pro</h3>
+                            <p class="mt-2 text-sm text-gray-500">Titanium body with ProMotion display.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">980,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="iPhone 15 Plus" data-vendor="TechStore Official" data-category="iphone"
+                        data-price="880000">
+                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80"
+                            alt="iPhone 15 Plus" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">TechStore Official</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">iPhone 15 Plus</h3>
+                            <p class="mt-2 text-sm text-gray-500">Large display and all-day battery.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">880,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="iPhone 14 Pro Max" data-vendor="Mobile World" data-category="iphone"
+                        data-price="760000">
+                        <img src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=900&q=80"
+                            alt="iPhone 14 Pro Max" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">Mobile World</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">iPhone 14 Pro Max</h3>
+                            <p class="mt-2 text-sm text-gray-500">Premium camera system and long battery life.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">760,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="iPhone 13" data-vendor="GadgetHub" data-category="iphone" data-price="580000">
+                        <img src="https://images.unsplash.com/photo-1512499617640-c2f999018b72?auto=format&fit=crop&w=900&q=80"
+                            alt="iPhone 13" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">GadgetHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">iPhone 13</h3>
+                            <p class="mt-2 text-sm text-gray-500">Classic iPhone design with dual camera.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">580,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="iPhone SE 3" data-vendor="TechStore Official" data-category="iphone"
+                        data-price="290000">
+                        <img src="https://images.unsplash.com/photo-1520496528342-85f6ba1261f2?auto=format&fit=crop&w=900&q=80"
+                            alt="iPhone SE 3" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">TechStore Official</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">iPhone SE 3</h3>
+                            <p class="mt-2 text-sm text-gray-500">Compact iPhone with powerful chip.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">290,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="iPhone 12 Mini" data-vendor="PhoneHub" data-category="iphone" data-price="320000">
+                        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=900&q=80"
+                            alt="iPhone 12 Mini" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">PhoneHub</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">iPhone 12 Mini</h3>
+                            <p class="mt-2 text-sm text-gray-500">Small form factor with strong performance.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">320,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="iPhone 14" data-vendor="Mobile World" data-category="iphone" data-price="650000">
+                        <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80"
+                            alt="iPhone 14" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">Mobile World</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">iPhone 14</h3>
+                            <p class="mt-2 text-sm text-gray-500">Reliable choice with advanced camera.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">650,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="iPhone 15" data-vendor="TechStore Official" data-category="iphone"
+                        data-price="820000">
+                        <img src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=900&q=80"
+                            alt="iPhone 15" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">TechStore Official</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">iPhone 15</h3>
+                            <p class="mt-2 text-sm text-gray-500">Latest design and advanced camera system.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">820,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between gap-4 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">Phone cases</h3>
+                        <p class="text-sm text-gray-500">10 protective and stylish cases for every phone.</p>
+                    </div>
+                    <span class="text-xs uppercase tracking-[0.18em] text-blue-600 font-semibold">Cases</span>
+                </div>
+                <div class="flex gap-4 overflow-x-auto pb-4">
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Carbon Fiber Case" data-vendor="CaseLab" data-category="cases" data-price="45000">
+                        <img src="https://images.unsplash.com/photo-1512499617640-c2f999018b72?auto=format&fit=crop&w=900&q=80"
+                            alt="Carbon Fiber Case" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">CaseLab</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Carbon Fiber Case</h3>
+                            <p class="mt-2 text-sm text-gray-500">Durable build with sleek finish.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">45,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Leather Wallet Case" data-vendor="CaseLab" data-category="cases" data-price="55000">
+                        <img src="https://images.unsplash.com/photo-1520496528342-85f6ba1261f2?auto=format&fit=crop&w=900&q=80"
+                            alt="Leather Wallet Case" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">CaseLab</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Leather Wallet Case</h3>
+                            <p class="mt-2 text-sm text-gray-500">Premium leather with card slots.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">55,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Clear Silicone Case" data-vendor="PhoneAccessory" data-category="cases"
+                        data-price="25000">
+                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80"
+                            alt="Clear Silicone Case" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">PhoneAccessory</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Clear Silicone Case</h3>
+                            <p class="mt-2 text-sm text-gray-500">Slim profile with impact protection.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">25,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="MagSafe Silicone Case" data-vendor="PhoneAccessory" data-category="cases"
+                        data-price="38000">
+                        <img src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=900&q=80"
+                            alt="MagSafe Silicone Case" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">PhoneAccessory</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">MagSafe Silicone Case</h3>
+                            <p class="mt-2 text-sm text-gray-500">Soft-touch case for magnetic compatibility.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">38,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Rugged Armor Case" data-vendor="CaseLab" data-category="cases" data-price="48000">
+                        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=900&q=80"
+                            alt="Rugged Armor Case" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">CaseLab</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Rugged Armor Case</h3>
+                            <p class="mt-2 text-sm text-gray-500">Heavy-duty protection for everyday drops.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">48,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Luxury Leather Case" data-vendor="PhoneAccessory" data-category="cases"
+                        data-price="62000">
+                        <img src="https://images.unsplash.com/photo-1526413237998-1f88d0fbc675?auto=format&fit=crop&w=900&q=80"
+                            alt="Luxury Leather Case" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">PhoneAccessory</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Luxury Leather Case</h3>
+                            <p class="mt-2 text-sm text-gray-500">Premium style with protective padding.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">62,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                    <article
+                        class="product-card min-w-[280px] rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
+                        data-name="Matte Finish Case" data-vendor="CaseLab" data-category="cases" data-price="29000">
+                        <img src="https://images.unsplash.com/photo-1598970434795-0c54fe7c0642?auto=format&fit=crop&w=900&q=80"
+                            alt="Matte Finish Case" class="h-52 w-full object-cover">
+                        <div class="p-4">
+                            <p class="text-xs text-gray-500">CaseLab</p>
+                            <h3 class="mt-3 text-lg font-semibold text-gray-900">Matte Finish Case</h3>
+                            <p class="mt-2 text-sm text-gray-500">Sleek grip with soft matte texture.</p>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-lg font-extrabold text-blue-600">29,000 CFA</span>
+                            </div>
+                            <button
+                                class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                type="button">Add to cart</button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="recommendations" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+        <div class="absolute -top-32 -right-32 w-96 h-96 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 relative z-10">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Recommended for you</h2>
+                <p class="text-sm text-gray-500 mt-1">Top-rated products selected automatically from our marketplace.
+                </p>
+            </div>
+            <button id="refresh-recommendations" type="button"
+                class="rounded-full border border-blue-600 bg-white px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50">Refresh
+                recommendations</button>
+        </div>
+        <div id="recommendations-list" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 relative z-10">
+            <div id="recommendations-status"
+                class="col-span-full rounded-3xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+                Loading recommendations...</div>
+        </div>
+    </section>
+
+    <footer id="footer" class="bg-gray-900 text-gray-300 pt-16 pb-8 border-t border-gray-800 mt-12 relative">
+        <div class="absolute inset-0 opacity-5"
+            style="background: url('https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=1200&q=80'); background-size: cover; background-position: center;">
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-white tracking-tight mb-4">GlobalMart</h1>
+                    <p class="text-sm text-gray-400 mb-6">The premier multi-vendor marketplace connecting global
+                        suppliers with local buyers.</p>
+                    <div class="flex space-x-4">
+                        <div
+                            class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition cursor-pointer">
+                            FB</div>
+                        <div
+                            class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-400 transition cursor-pointer">
+                            TW</div>
+                        <div
+                            class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-pink-600 transition cursor-pointer">
+                            IG</div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Customer Service</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition">Track Your Order</a></li>
+                        <li><a href="#" class="hover:text-white transition">Return Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition">Dispute Resolution</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Make Money with Us</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Sell on GlobalMart</a></li>
+                        <li><a href="#" class="hover:text-white transition">Become an Affiliate</a></li>
+                        <li><a href="#" class="hover:text-white transition">Vendor Support Hub</a></li>
+                        <li><a href="#" class="hover:text-white transition">Wholesale Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Secure Payments</h4>
+                    <p class="text-xs text-gray-400 mb-4">We support secure local and international payment methods.</p>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="bg-gray-800 px-3 py-1 rounded text-xs font-bold">Orange Money</span>
+                        <span class="bg-gray-800 px-3 py-1 rounded text-xs font-bold">MTN MoMo</span>
+                        <span class="bg-gray-800 px-3 py-1 rounded text-xs font-bold">Visa / MC</span>
+                        <span class="bg-gray-800 px-3 py-1 rounded text-xs font-bold">PayPal</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 pt-8 text-center text-sm text-gray-500">
+                &copy; 2026 GlobalMart Marketplace. All rights reserved. Built for scale.
+            </div>
+        </div>
+    </footer>
+
+    <div id="vendor-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
+            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Vendor Sign In</h2>
+                    <p class="text-sm text-gray-500 mt-1">Access your vendor dashboard and manage listings.</p>
+                </div>
+                <button id="close-vendor-modal" type="button" class="text-gray-500 hover:text-gray-900">Close</button>
+            </div>
+            <form id="vendor-signin-form" class="space-y-4 px-6 py-6">
+                <div>
+                    <label for="vendor-email" class="block text-sm font-medium text-gray-700">Email address</label>
+                    <input id="vendor-email" type="email" required
+                        class="mt-2 w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        placeholder="you@example.com">
+                </div>
+                <div>
+                    <label for="vendor-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input id="vendor-password" type="password" required
+                        class="mt-2 w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        placeholder="Enter your password">
+                </div>
+                <div>
+                    <label for="vendor-store" class="block text-sm font-medium text-gray-700">Store name</label>
+                    <input id="vendor-store" type="text"
+                        class="mt-2 w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        placeholder="Your store name">
+                </div>
+                <div id="vendor-status" class="text-sm text-green-600"></div>
+                <button type="submit"
+                    class="w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition">Sign
+                    in</button>
+            </form>
+        </div>
+    </div>
+
+    <aside id="cart-drawer"
+        class="fixed inset-y-0 right-0 z-50 hidden w-full max-w-md bg-white shadow-2xl border-l border-gray-200 overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">Your cart</h2>
+                <p class="text-sm text-gray-500">Review items and checkout securely.</p>
+            </div>
+            <button id="close-cart-drawer" type="button" class="text-gray-500 hover:text-gray-900">Close</button>
+        </div>
+        <div id="cart-items" class="space-y-4 p-6">
+            <p class="text-sm text-gray-500">Your cart is empty. Add products to get started.</p>
+        </div>
+        <div class="border-t border-gray-200 px-6 py-4">
+            <div class="flex items-center justify-between text-sm text-gray-700">
+                <span>Total</span>
+                <span id="cart-total" class="font-semibold text-gray-900">0 CFA</span>
+            </div>
+            <button id="checkout-button" type="button"
+                class="mt-4 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition">Checkout</button>
+            <p id="cart-drawer-status" class="mt-3 text-sm text-green-600"></p>
+        </div>
+    </aside>
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "Store",
+            "name": "GlobalMart",
+            "description": "GlobalMart is a trusted global marketplace for smartphones and electronics.",
+            "url": "https://example.com",
+            "telephone": "+22300000000",
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Bamako",
+                "addressCountry": "ML"
+            }
+        }
+    </script>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
