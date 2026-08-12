@@ -211,7 +211,7 @@ function renderProductCard(product) {
 
 // Use event delegation for product list buttons to handle dynamic content and fewer listeners
 function initProductListDelegation() {
-  const productsList = document.getElementById('products-list') || document;
+  const productsList = document;
   productsList.addEventListener('click', async (event) => {
     const btn = event.target.closest('.add-cart-btn, .add-cart');
     if (!btn) return;
@@ -219,7 +219,7 @@ function initProductListDelegation() {
     try {
       const id = btn.dataset.id;
       if (id) {
-        const product = await apiFetch(`/api/product?id=${encodeURIComponent(id)}`);
+        const product = await apiFetch(`/api/products?id=${encodeURIComponent(id)}`);
         addToCart(product);
       }
       if (document.getElementById('cart-drawer')) toggleCartDrawer(true);
@@ -246,25 +246,38 @@ async function loadProducts(listNode, searchInput, category = 'all') {
   const query = searchInput?.value?.trim().toLowerCase() || '';
   const categoryQuery = category !== 'all' ? `&category=${encodeURIComponent(category)}` : '';
   let products = [];
+
+  // Show skeleton while loading
+  if (listNode) {
+    listNode.innerHTML = Array(4).fill('').map(() => `
+      <div class="animate-pulse rounded-3xl overflow-hidden bg-white shadow-sm">
+        <div class="h-64 w-full bg-gray-200"></div>
+        <div class="p-5 space-y-3">
+          <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-3 bg-gray-200 rounded w-full"></div>
+          <div class="h-3 bg-gray-200 rounded w-2/3"></div>
+          <div class="h-10 bg-gray-200 rounded-full mt-4"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
   try {
+    // Server handles both search and category filtering — no need to filter again on client
     products = await apiFetch(`/api/products?search=${encodeURIComponent(query)}${categoryQuery}`);
   } catch (err) {
     if (listNode) listNode.innerHTML = '<div class="col-span-full rounded-3xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-red-500">Unable to load products.</div>';
     return;
   }
-  const filtered = products.filter(product => {
-    if (!query) return true;
-    return [product.name, product.vendor, product.category]
-      .some(value => value.toLowerCase().includes(query));
-  });
 
   if (!listNode) return;
-  if (filtered.length === 0) {
+  if (products.length === 0) {
     listNode.innerHTML = '<div class="col-span-full rounded-3xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">No products matched your search.</div>';
     return;
   }
 
-  listNode.innerHTML = filtered.map(renderProductCard).join('');
+  listNode.innerHTML = products.map(renderProductCard).join('');
 }
 
 function clearChildren(id) {
@@ -312,8 +325,24 @@ async function initIndexPage() {
   if (window.location.protocol !== 'file:') {
     await loadProducts(document.getElementById('products-list'), document.getElementById('search-input'), selectedCategory);
     await loadRecommendations(document.getElementById('recommendations-list'), selectedCategory);
+    await loadProducts(document.getElementById('ps5-list'), null, 'consoles');
+    await loadProducts(document.getElementById('android-list'), null, 'android');
+    await loadProducts(document.getElementById('iphone-list'), null, 'iphone');
+    await loadProducts(document.getElementById('cases-list'), null, 'cases');
+    await loadFlashSale();
   } else {
     console.log('Running locally without a server. Using hardcoded HTML layout.');
+  }
+}
+
+async function loadFlashSale() {
+  const node = document.getElementById('flash-sale-list');
+  if (!node) return;
+  try {
+    const products = await apiFetch('/api/recommendations');
+    node.innerHTML = products.slice(0, 4).map(renderProductCard).join('');
+  } catch (err) {
+    node.innerHTML = '<div class="col-span-full text-center text-sm text-red-500">Unable to load deals.</div>';
   }
 }
 
@@ -330,7 +359,7 @@ async function initProductPage() {
     return;
   }
   try {
-    const product = await apiFetch(`/api/product?id=${encodeURIComponent(productId)}`);
+   const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
     const imageHtml = product.image
       ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="h-96 w-full object-cover">`
       : `<div class="h-96 w-full bg-gray-100 flex items-center justify-center text-6xl text-gray-400">📦</div>`;
@@ -403,7 +432,7 @@ async function loadOrderHistory() {
         <div class="mt-4 grid gap-2 sm:grid-cols-2">
           ${order.items.map(item => `
             <div class="rounded-2xl bg-slate-50 p-4">
-              <p class="text-sm font-semibold text-slate-900">${item.name}</p>
+              <p class="text-sm font-semibold text-slate-900">${escapeHtml(item.product?.name || 'Product')}</p>
               <p class="mt-1 text-xs text-slate-500">Qty: ${item.quantity}</p>
               <p class="mt-2 text-sm text-slate-700">${formatMoney(item.price)}</p>
             </div>
@@ -478,7 +507,27 @@ function initHeaderEvents() {
     window.location.href = 'checkout.html';
   });
 
-  // Mobile menu toggle
+  // Header search bars (desktop + mobile) redirect into the real search panel input
+  function wireHeaderSearch(formId, inputId) {
+    const form = document.getElementById(formId);
+    const input = document.getElementById(inputId);
+    if (!form || !input) return;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const mainSearchInput = document.getElementById('search-input');
+      if (mainSearchInput) {
+        mainSearchInput.value = input.value;
+        document.getElementById('search-panel')?.scrollIntoView({ behavior: 'smooth' });
+        await loadProducts(document.getElementById('products-list'), mainSearchInput, selectedCategory);
+      } else {
+        // Not on the home page: send them to the home page with the query
+        window.location.href = `index.html?search=${encodeURIComponent(input.value)}#products`;
+      }
+    });
+  }
+  wireHeaderSearch('desktop-search', 'desktop-search-input');
+  wireHeaderSearch('mobile-search', 'mobile-search-input');
+
   const mobileButton = document.getElementById('mobile-menu-button');
   const mobileMenu = document.getElementById('mobile-menu');
   if (mobileButton && mobileMenu) {

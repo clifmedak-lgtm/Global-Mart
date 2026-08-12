@@ -80,3 +80,11 @@ input:focus-visible {
         transition: none !important;
     }
 }
+/* Product cards inside horizontal carousels (PS5, Android, iPhone, Cases sections) */
+#ps5-list > article,
+#android-list > article,
+#iphone-list > article,
+#cases-list > article {
+    min-width: 280px;
+    flex-shrink: 0;
+}

@@ -19,7 +19,8 @@ model User {
   updatedAt DateTime  @updatedAt
   sessions  Session[]
   orders    Order[]
-  role      String    @default("user") // Added for authorization
+  role String @default("customer")
+  businessName String?
 }
 
 model Session {
@@ -54,6 +55,9 @@ model Order {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   items       OrderItem[]
+  shippingAddress String @default("")
+  shippingCity String @default("")
+  shippingPhone String @default("") 
 }
 
 model OrderItem {
