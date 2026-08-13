@@ -21,6 +21,7 @@ model User {
   orders    Order[]
   role String @default("customer")
   businessName String?
+  products  Product[] @relation("VendorProducts")
 }
 
 model Session {
@@ -37,13 +38,18 @@ model Product {
   name        String
   description String?
   image       String?
-  vendor      String
+  vendor      String                            // Display name (kept for old seeded rows without a real account)
+  vendorId    String?                           // Real link to the vendor's User account (used for new products)
+  vendorUser  User?       @relation("VendorProducts", fields: [vendorId], references: [id])
   price       Int         // Store in cents/smallest unit to avoid floating point issues
   category    String
+  stock       Int         @default(999)
   rating      Float?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   orderItems  OrderItem[]
+
+  @@index([vendorId])
 }
 
 model Order {
@@ -51,13 +57,21 @@ model Order {
   userId      String
   user        User        @relation(fields: [userId], references: [id])
   totalAmount Int         // Store in cents/smallest unit
-  status      String      @default("PENDING")
+  // Order lifecycle: PENDING_PAYMENT -> PROCESSING -> SHIPPED -> DELIVERED (or CANCELLED at any point before SHIPPED)
+  status      String      @default("PENDING_PAYMENT")
+  // Payment lifecycle: UNPAID -> PAID / FAILED
+  paymentStatus    String  @default("UNPAID")
+  paymentMethod    String?  // "MOMO", "ORANGE_MONEY", "CARD"
+  paymentProvider  String?  // "cinetpay"
+  paymentReference String?  @unique // transaction id returned by the payment provider
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   items       OrderItem[]
   shippingAddress String @default("")
   shippingCity String @default("")
-  shippingPhone String @default("") 
+  shippingPhone String @default("")
+
+  @@index([paymentReference])
 }
 
 model OrderItem {

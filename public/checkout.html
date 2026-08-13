@@ -68,36 +68,24 @@
                 <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-200">
                     <h2 class="text-xl font-bold text-gray-900 mb-6">Shipping Information</h2>
                     <form id="checkout-form" class="space-y-6">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <label for="firstName" class="block text-sm font-medium text-gray-700">First
-                                    name</label>
-                                <input type="text" id="firstName" name="firstName" required
-                                    class="mt-1 block w-full rounded-2xl border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none">
-                            </div>
-                            <div>
-                                <label for="lastName" class="block text-sm font-medium text-gray-700">Last name</label>
-                                <input type="text" id="lastName" name="lastName" required
-                                    class="mt-1 block w-full rounded-2xl border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none">
-                            </div>
-                        </div>
-
                         <div>
-                            <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
-                            <input type="text" id="address" name="address" required
+                            <label for="shipping-address" class="block text-sm font-medium text-gray-700">Address</label>
+                            <input type="text" id="shipping-address" name="shippingAddress" required
+                                placeholder="Street, neighborhood..."
                                 class="mt-1 block w-full rounded-2xl border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none">
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <div class="sm:col-span-2">
-                                <label for="city" class="block text-sm font-medium text-gray-700">City</label>
-                                <input type="text" id="city" name="city" required
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div>
+                                <label for="shipping-city" class="block text-sm font-medium text-gray-700">City</label>
+                                <input type="text" id="shipping-city" name="shippingCity" required
                                     class="mt-1 block w-full rounded-2xl border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none">
                             </div>
                             <div>
-                                <label for="postalCode" class="block text-sm font-medium text-gray-700">Postal
-                                    code</label>
-                                <input type="text" id="postalCode" name="postalCode" required
+                                <label for="shipping-phone" class="block text-sm font-medium text-gray-700">Phone
+                                    number</label>
+                                <input type="tel" id="shipping-phone" name="shippingPhone" required
+                                    placeholder="+237 6XX XXX XXX"
                                     class="mt-1 block w-full rounded-2xl border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm outline-none">
                             </div>
                         </div>
@@ -107,18 +95,25 @@
                         <h2 class="text-xl font-bold text-gray-900 mb-6">Payment Method</h2>
                         <div class="space-y-4">
                             <div class="flex items-center gap-3">
-                                <input id="payment-card" name="paymentMethod" type="radio" checked
+                                <input id="payment-momo" name="paymentMethod" type="radio" value="MOMO" checked
                                     class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-600">
-                                <label for="payment-card" class="block text-sm font-medium text-gray-700">Credit / Debit
-                                    Card</label>
+                                <label for="payment-momo" class="block text-sm font-medium text-gray-700">MTN Mobile
+                                    Money</label>
                             </div>
                             <div class="flex items-center gap-3">
-                                <input id="payment-momo" name="paymentMethod" type="radio"
+                                <input id="payment-orange" name="paymentMethod" type="radio" value="ORANGE_MONEY"
                                     class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-600">
-                                <label for="payment-momo" class="block text-sm font-medium text-gray-700">Mobile Money
-                                    (MoMo)</label>
+                                <label for="payment-orange" class="block text-sm font-medium text-gray-700">Orange
+                                    Money</label>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <input id="payment-card" name="paymentMethod" type="radio" value="CARD"
+                                    class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-600">
+                                <label for="payment-card" class="block text-sm font-medium text-gray-700">Credit / Debit
+                                    Card (Visa, Mastercard)</label>
                             </div>
                         </div>
+                        <p class="text-xs text-gray-400 -mt-2">You'll be redirected to a secure CinetPay payment page to complete your payment.</p>
 
                         <button type="submit"
                             class="w-full rounded-full bg-blue-600 py-4 text-base font-bold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-transform transform hover:-translate-y-0.5">

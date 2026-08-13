@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { v2 as cloudinary } from 'cloudinary';
 
 dotenv.config();
 
@@ -16,8 +17,26 @@ const port = process.env.PORT || 3000;
 const app = express();
 const prisma = new PrismaClient();
 
+// NotchPay config (Mobile Money + Orange Money + Cartes, Cameroun + international).
+// Works with a sandbox key (starts with "sb.") available immediately at signup —
+// no business registration required to start testing.
+const NOTCHPAY_PUBLIC_KEY = process.env.NOTCHPAY_PUBLIC_KEY;
+const NOTCHPAY_BASE_URL = 'https://api.notchpay.co';
+// Public base URL of this app, used to build NotchPay's callback URL.
+const APP_URL = process.env.APP_URL || `http://localhost:${port}`;
+
+if (process.env.CLOUDINARY_CLOUD_NAME) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+}
+
 app.use(cors());
-app.use(express.json());
+// CinetPay's notify_url is called as x-www-form-urlencoded, so we need both parsers.
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
@@ -63,10 +82,16 @@ const requireVendor = (req, res, next) => {
 
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-// ===== CUSTOMER ENDPOINTS (existing) =====
+// Products belonging to a vendor: match by the reliable vendorId first,
+// fall back to the display-name match for old rows created before vendorId existed.
+function vendorProductsWhere(user) {
+  return { OR: [{ vendorId: user.id }, { vendor: user.fullName }] };
+}
+
+// ===== CUSTOMER ENDPOINTS =====
 
 app.get('/api/products', asyncHandler(async (req, res) => {
-  const { category, search, id } = req.query;
+  const { category, search, id, priceMin, priceMax } = req.query;
 
   if (id) {
     const product = await prisma.product.findUnique({ where: { id: String(id) } });
@@ -84,10 +109,16 @@ app.get('/api/products', asyncHandler(async (req, res) => {
       { name: { contains: searchTerm, mode: 'insensitive' } },
       { vendor: { contains: searchTerm, mode: 'insensitive' } },
       { category: { contains: searchTerm, mode: 'insensitive' } },
+      { description: { contains: searchTerm, mode: 'insensitive' } },
     ];
   }
+  if (priceMin || priceMax) {
+    where.price = {};
+    if (priceMin) where.price.gte = Math.max(0, parseInt(priceMin) || 0);
+    if (priceMax) where.price.lte = Math.max(0, parseInt(priceMax) || 0);
+  }
 
-  const products = await prisma.product.findMany({ where });
+  const products = await prisma.product.findMany({ where, orderBy: { createdAt: 'desc' } });
   res.json(products);
 }));
 
@@ -146,11 +177,28 @@ app.get('/api/orders', requireAuth, asyncHandler(async (req, res) => {
   res.json(orders);
 }));
 
+app.get('/api/orders/:id', requireAuth, asyncHandler(async (req, res) => {
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: { items: { include: { product: true } } }
+  });
+  if (!order || order.userId !== req.user.id) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+  res.json(order);
+}));
+
+// Step 1 of checkout: create the order in PENDING_PAYMENT / UNPAID state.
+// No money moves yet - the order only becomes real (PROCESSING/PAID) once
+// /api/payment/notify or /api/payment/status confirms the CinetPay transaction.
 app.post('/api/checkout', requireAuth, asyncHandler(async (req, res) => {
   const { items, shippingAddress, shippingCity, shippingPhone } = req.body;
 
   if (!items?.length) {
     return res.status(400).json({ success: false, message: 'Cart is empty' });
+  }
+  if (!shippingAddress?.trim() || !shippingCity?.trim() || !shippingPhone?.trim()) {
+    return res.status(400).json({ success: false, message: 'Shipping address, city and phone are required' });
   }
 
   const productIds = items.map(i => String(i.id || i.productId)).filter(Boolean);
@@ -175,16 +223,152 @@ app.post('/api/checkout', requireAuth, asyncHandler(async (req, res) => {
     data: {
       userId: req.user.id,
       totalAmount,
-      status: 'PENDING',
-      shippingAddress: shippingAddress || '',
-      shippingCity: shippingCity || '',
-      shippingPhone: shippingPhone || '',
+      status: 'PENDING_PAYMENT',
+      paymentStatus: 'UNPAID',
+      shippingAddress: shippingAddress.trim(),
+      shippingCity: shippingCity.trim(),
+      shippingPhone: shippingPhone.trim(),
       items: { create: orderItems }
     },
     include: { items: { include: { product: true } } }
   });
 
   res.json({ success: true, order });
+}));
+
+// ===== PAYMENT (NotchPay: MTN MoMo, Orange Money, cartes Visa/Mastercard) =====
+
+app.post('/api/payment/initiate', requireAuth, asyncHandler(async (req, res) => {
+  if (!NOTCHPAY_PUBLIC_KEY) {
+    return res.status(503).json({ success: false, message: 'Payment provider is not configured yet (missing NOTCHPAY_PUBLIC_KEY)' });
+  }
+
+  const { orderId, paymentMethod } = req.body;
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order || order.userId !== req.user.id) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+  if (order.paymentStatus === 'PAID') {
+    return res.status(400).json({ success: false, message: 'Order already paid' });
+  }
+
+  const payload = {
+    amount: order.totalAmount,
+    currency: 'XAF',
+    email: req.user.email,
+    phone: order.shippingPhone || undefined,
+    reference: order.id,
+    description: `Commande GlobalMart #${order.id}`,
+    callback: `${APP_URL}/checkout.html?order=${order.id}`,
+  };
+
+  const notchpayRes = await fetch(`${NOTCHPAY_BASE_URL}/payments/initialize`, {
+    method: 'POST',
+    headers: {
+      'Authorization': NOTCHPAY_PUBLIC_KEY,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await notchpayRes.json();
+
+  if (!notchpayRes.ok || !data.authorization_url) {
+    console.error('NotchPay initiate error:', data);
+    return res.status(502).json({ success: false, message: data.message || 'Unable to start payment' });
+  }
+
+  await prisma.order.update({
+    where: { id: order.id },
+    data: {
+      paymentMethod: paymentMethod || 'MOMO',
+      paymentProvider: 'notchpay',
+      paymentReference: data.transaction?.reference || order.id,
+    }
+  });
+
+  res.json({ success: true, paymentUrl: data.authorization_url });
+}));
+
+async function verifyNotchpayTransaction(reference) {
+  const notchpayRes = await fetch(`${NOTCHPAY_BASE_URL}/payments/${encodeURIComponent(reference)}`, {
+    headers: { 'Authorization': NOTCHPAY_PUBLIC_KEY, 'Accept': 'application/json' },
+  });
+  return notchpayRes.json();
+}
+
+async function markOrderFromNotchpayResult(orderId, result) {
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order || order.paymentStatus === 'PAID') return order; // already handled / not found
+
+  const status = result?.transaction?.status;
+  if (status === 'complete') {
+    const updated = await prisma.order.update({
+      where: { id: orderId },
+      data: { paymentStatus: 'PAID', status: 'PROCESSING' }
+    });
+    // best-effort stock decrement, never blocks payment confirmation
+    const items = await prisma.orderItem.findMany({ where: { orderId } });
+    for (const item of items) {
+      await prisma.product.updateMany({
+        where: { id: item.productId, stock: { gte: item.quantity } },
+        data: { stock: { decrement: item.quantity } }
+      }).catch(() => { });
+    }
+    return updated;
+  }
+  if (status === 'failed' || status === 'canceled' || status === 'expired') {
+    return prisma.order.update({ where: { id: orderId }, data: { paymentStatus: 'FAILED' } });
+  }
+  // pending/processing or unknown: leave as UNPAID, caller can retry later
+  return order;
+}
+
+// NotchPay calls this server-to-server after a payment attempt (event "payment.complete").
+// Requires a public HTTPS URL in production - unreachable from NotchPay on localhost.
+// The exact reference field can vary by event payload shape, so we check the common ones.
+app.post('/api/payment/notify', asyncHandler(async (req, res) => {
+  const reference = req.body?.data?.reference || req.body?.reference || req.body?.transaction?.reference;
+  if (!reference) return res.sendStatus(400);
+  try {
+    const result = await verifyNotchpayTransaction(reference);
+    await markOrderFromNotchpayResult(reference, result);
+  } catch (e) {
+    console.error('NotchPay notify error:', e);
+  }
+  res.sendStatus(200);
+}));
+
+// Frontend polls this after redirect back from NotchPay (also re-verifies directly
+// with NotchPay as a fallback for local dev, where the webhook can't be reached).
+app.get('/api/payment/status/:orderId', requireAuth, asyncHandler(async (req, res) => {
+  let order = await prisma.order.findUnique({ where: { id: req.params.orderId } });
+  if (!order || order.userId !== req.user.id) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+  if (order.paymentStatus === 'UNPAID' && NOTCHPAY_PUBLIC_KEY) {
+    try {
+      const result = await verifyNotchpayTransaction(order.paymentReference || order.id);
+      order = await markOrderFromNotchpayResult(order.id, result) || order;
+    } catch (e) {
+      console.error('NotchPay status check error:', e);
+    }
+  }
+  res.json({ success: true, status: order.status, paymentStatus: order.paymentStatus, order });
+}));
+
+// ===== IMAGE UPLOAD (Cloudinary) =====
+
+app.post('/api/upload/image', requireVendor, asyncHandler(async (req, res) => {
+  if (!process.env.CLOUDINARY_CLOUD_NAME) {
+    return res.status(503).json({ success: false, message: 'Image upload is not configured yet' });
+  }
+  const { image } = req.body; // expects a base64 data URL: "data:image/png;base64,...."
+  if (!image?.startsWith('data:')) {
+    return res.status(400).json({ success: false, message: 'Send a base64 data URL in the "image" field' });
+  }
+  const result = await cloudinary.uploader.upload(image, { folder: 'globalmart/products' });
+  res.json({ success: true, url: result.secure_url });
 }));
 
 // ===== VENDOR ENDPOINTS =====
@@ -234,25 +418,41 @@ app.post('/api/vendor/auth/login', asyncHandler(async (req, res) => {
 }));
 
 app.get('/api/vendor/products', requireVendor, asyncHandler(async (req, res) => {
-  const products = await prisma.product.findMany({ where: { vendor: req.user.fullName } });
+  const { search } = req.query;
+  const where = { ...vendorProductsWhere(req.user) };
+  if (search) {
+    const term = String(search).trim();
+    where.AND = [{
+      OR: [
+        { name: { contains: term, mode: 'insensitive' } },
+        { category: { contains: term, mode: 'insensitive' } },
+      ]
+    }];
+  }
+  const products = await prisma.product.findMany({ where, orderBy: { createdAt: 'desc' } });
   res.json(products);
 }));
 
 app.post('/api/vendor/products', requireVendor, asyncHandler(async (req, res) => {
-  const { name, description, price, category, image } = req.body;
+  const { name, description, price, category, image, stock } = req.body;
   if (!name?.trim() || !price || !category?.trim()) {
     return res.status(400).json({ success: false, message: 'Missing product fields' });
   }
 
+  const slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const uniqueSuffix = crypto.randomBytes(3).toString('hex');
+
   const product = await prisma.product.create({
     data: {
-      id: `${category.toLowerCase()}-${name.toLowerCase().replace(/\s+/g, '-')}`,
+      id: `${category.toLowerCase()}-${slug}-${uniqueSuffix}`,
       name: name.trim(),
       description: description?.trim() || '',
       price: Math.max(1, parseInt(price)),
       category: category.toLowerCase(),
       image: image || '',
+      stock: stock !== undefined ? Math.max(0, parseInt(stock) || 0) : 999,
       vendor: req.user.fullName,
+      vendorId: req.user.id,
       rating: 4.0
     }
   });
@@ -261,8 +461,8 @@ app.post('/api/vendor/products', requireVendor, asyncHandler(async (req, res) =>
 }));
 
 app.put('/api/vendor/products/:id', requireVendor, asyncHandler(async (req, res) => {
-  const product = await prisma.product.findUnique({ where: { id: req.params.id } });
-  if (!product || product.vendor !== req.user.fullName) {
+  const product = await prisma.product.findFirst({ where: { id: req.params.id, ...vendorProductsWhere(req.user) } });
+  if (!product) {
     return res.status(403).json({ success: false, message: 'Not your product' });
   }
 
@@ -273,6 +473,8 @@ app.put('/api/vendor/products/:id', requireVendor, asyncHandler(async (req, res)
       description: req.body.description !== undefined ? req.body.description : product.description,
       price: req.body.price ? Math.max(1, parseInt(req.body.price)) : product.price,
       image: req.body.image || product.image,
+      stock: req.body.stock !== undefined ? Math.max(0, parseInt(req.body.stock) || 0) : product.stock,
+      vendorId: product.vendorId || req.user.id, // backfill link for old rows on first edit
     }
   });
 
@@ -280,8 +482,8 @@ app.put('/api/vendor/products/:id', requireVendor, asyncHandler(async (req, res)
 }));
 
 app.delete('/api/vendor/products/:id', requireVendor, asyncHandler(async (req, res) => {
-  const product = await prisma.product.findUnique({ where: { id: req.params.id } });
-  if (!product || product.vendor !== req.user.fullName) {
+  const product = await prisma.product.findFirst({ where: { id: req.params.id, ...vendorProductsWhere(req.user) } });
+  if (!product) {
     return res.status(403).json({ success: false, message: 'Not your product' });
   }
 
@@ -289,23 +491,52 @@ app.delete('/api/vendor/products/:id', requireVendor, asyncHandler(async (req, r
   res.json({ success: true, message: 'Product deleted' });
 }));
 
+const VENDOR_ALLOWED_STATUSES = ['PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+
+app.put('/api/vendor/orders/:id/status', requireVendor, asyncHandler(async (req, res) => {
+  const { status } = req.body;
+  if (!VENDOR_ALLOWED_STATUSES.includes(status)) {
+    return res.status(400).json({ success: false, message: `Status must be one of: ${VENDOR_ALLOWED_STATUSES.join(', ')}` });
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: { items: { include: { product: true } } }
+  });
+  if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+
+  const ownsAnItem = order.items.some(i => i.product?.vendorId === req.user.id || i.product?.vendor === req.user.fullName);
+  if (!ownsAnItem) return res.status(403).json({ success: false, message: 'Not your order' });
+
+  const updated = await prisma.order.update({ where: { id: order.id }, data: { status } });
+  res.json({ success: true, order: updated });
+}));
+
 app.get('/api/vendor/stats', requireVendor, asyncHandler(async (req, res) => {
-  const products = await prisma.product.findMany({ where: { vendor: req.user.fullName } });
+  const vendorWhere = vendorProductsWhere(req.user);
+  const products = await prisma.product.findMany({ where: vendorWhere });
+
+  // All orders touching this vendor's products, regardless of payment status —
+  // the vendor needs to see pending-payment orders too (read-only, waiting on the customer).
   const orders = await prisma.order.findMany({
     where: {
-      items: {
-        some: { product: { vendor: req.user.fullName } }
-      }
+      items: { some: { product: vendorWhere } }
     },
-    include: { items: true, user: true }
+    orderBy: { createdAt: 'desc' },
+    include: { items: { include: { product: true } }, user: true }
   });
 
-  const totalRevenue = orders.reduce((sum, order) => {
-    const vendorAmount = order.items
-      .filter(item => item.productId && item.product?.vendor === req.user.fullName)
-      .reduce((itemSum, item) => itemSum + (item.price * item.quantity), 0);
-    return sum + vendorAmount;
-  }, 0);
+  const isMine = (item) => item.product?.vendorId === req.user.id || item.product?.vendor === req.user.fullName;
+
+  // Revenue only counts confirmed/paid orders.
+  const totalRevenue = orders
+    .filter(order => order.paymentStatus === 'PAID')
+    .reduce((sum, order) => {
+      const vendorAmount = order.items
+        .filter(isMine)
+        .reduce((itemSum, item) => itemSum + (item.price * item.quantity), 0);
+      return sum + vendorAmount;
+    }, 0);
 
   res.json({
     productCount: products.length,
@@ -317,8 +548,17 @@ app.get('/api/vendor/stats', requireVendor, asyncHandler(async (req, res) => {
       customerName: o.user.fullName,
       totalAmount: o.totalAmount,
       status: o.status,
+      paymentStatus: o.paymentStatus,
+      shippingAddress: o.shippingAddress,
+      shippingCity: o.shippingCity,
+      shippingPhone: o.shippingPhone,
       createdAt: o.createdAt,
-      items: o.items
+      // Only this vendor's line items from the order, with product name/qty for display
+      items: o.items.filter(isMine).map(i => ({
+        productName: i.product?.name || 'Product',
+        quantity: i.quantity,
+        price: i.price,
+      }))
     }))
   });
 }));

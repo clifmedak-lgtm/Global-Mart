@@ -91,11 +91,15 @@
 
                     <!-- Products Section -->
                     <div id="products" class="hidden">
-                        <div class="flex justify-between items-center mb-8">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                             <h2 class="text-3xl font-bold">My Products</h2>
-                            <button onclick="showAddProduct()"
-                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Add
-                                Product</button>
+                            <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <input type="search" id="product-search-input" placeholder="Search my products..."
+                                    class="flex-1 sm:w-64 px-4 py-2 border rounded">
+                                <button onclick="showAddProduct()"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 whitespace-nowrap">+ Add
+                                    Product</button>
+                            </div>
                         </div>
 
                         <!-- Add/Edit Product Form -->
@@ -105,19 +109,29 @@
                                 class="w-full px-4 py-2 border rounded mb-4">
                             <input type="text" id="product-description" placeholder="Description"
                                 class="w-full px-4 py-2 border rounded mb-4">
-                            <input type="number" id="product-price" placeholder="Price (CFA)"
-                                class="w-full px-4 py-2 border rounded mb-4">
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <input type="number" id="product-price" placeholder="Price (CFA)"
+                                    class="w-full px-4 py-2 border rounded">
+                                <input type="number" id="product-stock" placeholder="Stock quantity" min="0"
+                                    class="w-full px-4 py-2 border rounded">
+                            </div>
                             <select id="product-category" class="w-full px-4 py-2 border rounded mb-4">
                                 <option value="consoles">Consoles</option>
                                 <option value="android">Android Phones</option>
                                 <option value="iphone">iPhone</option>
                                 <option value="cases">Cases</option>
+                                <option value="accessories">Accessories</option>
+                                <option value="audio">Audio</option>
                             </select>
                             <input type="text" id="product-image" placeholder="Image URL"
                                 class="w-full px-4 py-2 border rounded mb-4">
-                            <button onclick="saveProduct()"
-                                class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Save
-                                Product</button>
+                            <div class="flex gap-3">
+                                <button onclick="saveProduct()"
+                                    class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Save
+                                    Product</button>
+                                <button onclick="cancelProductForm()"
+                                    class="px-6 bg-gray-100 text-gray-700 py-2 rounded hover:bg-gray-200">Cancel</button>
+                            </div>
                         </div>
 
                         <!-- Products List -->
@@ -129,7 +143,7 @@
                     <!-- Orders Section -->
                     <div id="orders" class="hidden">
                         <h2 class="text-3xl font-bold mb-8">Orders</h2>
-                        <div id="vendor-orders-list" class="bg-white p-6 rounded-lg shadow">
+                        <div id="vendor-orders-list" class="space-y-4">
                             Loading orders...
                         </div>
                     </div>
@@ -250,58 +264,127 @@
             }
         }
 
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
         async function loadProducts() {
-            const token = localStorage.getItem('vendor-token');
+            const search = document.getElementById('product-search-input')?.value || '';
             try {
-                const res = await fetch(`${API_URL}/api/vendor/products`, {
-                    headers: authHeaders()
-                });
+                const url = `${API_URL}/api/vendor/products${search ? `?search=${encodeURIComponent(search)}` : ''}`;
+                const res = await fetch(url, { headers: authHeaders() });
                 const products = await readJson(res);
                 if (!res.ok) throw new Error(products.message || `Request failed (${res.status})`);
                 const html = (products || []).map(p => `
-    <div class="bg-white p-4 rounded-lg shadow" data-id="${p.id}" data-name="${p.name}" data-description="${p.description}" data-price="${p.price}" data-category="${p.category}" data-image="${p.image}">
-        <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover rounded mb-2">
-        <h4 class="font-bold">${p.name}</h4>
+    <div class="bg-white p-4 rounded-lg shadow" data-id="${p.id}" data-name="${escapeHtml(p.name)}" data-description="${escapeHtml(p.description)}" data-price="${p.price}" data-category="${p.category}" data-image="${escapeHtml(p.image)}" data-stock="${p.stock ?? 999}">
+        <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="w-full h-40 object-cover rounded mb-2" onerror="this.style.display='none'">
+        <h4 class="font-bold">${escapeHtml(p.name)}</h4>
         <p class="text-sm text-gray-600">${Number(p.price || 0).toLocaleString()} CFA</p>
+        <p class="text-xs ${p.stock > 0 ? 'text-gray-500' : 'text-red-600 font-semibold'} mt-1">${p.stock > 0 ? `${p.stock} in stock` : 'Out of stock'}</p>
         <button onclick="editProduct('${p.id}')" class="mt-2 w-full bg-blue-600 text-white py-1 rounded text-sm">Edit</button>
         <button onclick="deleteProduct('${p.id}')" class="mt-1 w-full bg-red-600 text-white py-1 rounded text-sm">Delete</button>
     </div>
 `).join('');
-                document.getElementById('products-list').innerHTML = html || '<p>No products yet</p>';
+                document.getElementById('products-list').innerHTML = html || '<p class="col-span-full text-gray-500">No products match your search.</p>';
             } catch (err) {
                 console.error('Products error:', err);
             }
         }
 
+        const ORDER_STATUSES = ['PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+        const STATUS_LABELS = {
+            PENDING_PAYMENT: 'Awaiting payment',
+            PROCESSING: 'Processing',
+            SHIPPED: 'Shipped',
+            DELIVERED: 'Delivered',
+            CANCELLED: 'Cancelled'
+        };
+        const STATUS_COLORS = {
+            PENDING_PAYMENT: 'bg-gray-100 text-gray-700',
+            PROCESSING: 'bg-blue-100 text-blue-700',
+            SHIPPED: 'bg-yellow-100 text-yellow-700',
+            DELIVERED: 'bg-green-100 text-green-700',
+            CANCELLED: 'bg-red-100 text-red-700'
+        };
+
+        function renderOrderCard(o) {
+            const itemsHtml = (o.items || []).map(i => `
+                <div class="flex justify-between text-sm text-gray-700 py-1">
+                    <span>${escapeHtml(i.productName)} <span class="text-gray-400">x${i.quantity}</span></span>
+                    <span>${Number((i.price || 0) * i.quantity).toLocaleString()} CFA</span>
+                </div>
+            `).join('');
+            const statusOptions = ORDER_STATUSES.map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${STATUS_LABELS[s]}</option>`).join('');
+            return `
+                <div class="p-5 bg-white rounded-lg shadow" data-order-id="${o.id}">
+                    <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+                        <div>
+                            <p class="font-bold">Order #${o.id.slice(0, 10)}...</p>
+                            <p class="text-sm text-gray-600">${escapeHtml(o.customerName)} — ${new Date(o.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <span class="text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[o.status] || 'bg-gray-100 text-gray-700'}">${STATUS_LABELS[o.status] || o.status}</span>
+                    </div>
+                    <div class="border-t border-b border-gray-100 py-2 my-2">${itemsHtml}</div>
+                    <p class="text-sm text-gray-600">📍 ${escapeHtml(o.shippingAddress)}, ${escapeHtml(o.shippingCity)} — ${escapeHtml(o.shippingPhone)}</p>
+                    <div class="flex items-center justify-between mt-3 gap-3">
+                        <p class="font-bold">${Number(o.totalAmount || 0).toLocaleString()} CFA</p>
+                        ${o.status === 'PENDING_PAYMENT'
+                            ? '<span class="text-xs text-gray-400">Waiting for customer payment</span>'
+                            : `<select onchange="updateOrderStatus('${o.id}', this.value)" class="border rounded px-3 py-1 text-sm">${statusOptions}</select>`}
+                    </div>
+                </div>
+            `;
+        }
+
         async function loadOrders() {
-            // Same as loadStats but focused on orders
             loadStats();
-            const token = localStorage.getItem('vendor-token');
             try {
-                const res = await fetch(`${API_URL}/api/vendor/stats`, {
-                    headers: authHeaders()
-                });
+                const res = await fetch(`${API_URL}/api/vendor/stats`, { headers: authHeaders() });
                 const data = await readJson(res);
                 if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
-                const html = (data.orders || []).map(o => `
-                    <div class="p-4 bg-gray-50 rounded mb-2">
-                        <p class="font-bold">Order #${o.id}</p>
-                        <p>${o.customerName} - ${Number(o.totalAmount || 0).toLocaleString()} CFA</p>
-                        <p class="text-sm text-gray-600">Status: ${o.status}</p>
-                    </div>
-                `).join('');
-                document.getElementById('vendor-orders-list').innerHTML = html || '<p>No orders</p>';
+                const html = (data.orders || []).map(renderOrderCard).join('');
+                document.getElementById('vendor-orders-list').innerHTML = html || '<p class="text-gray-500 bg-white p-6 rounded-lg shadow">No orders yet</p>';
             } catch (err) {
                 console.error('Orders error:', err);
             }
         }
 
+        async function updateOrderStatus(orderId, status) {
+            try {
+                const res = await fetch(`${API_URL}/api/vendor/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: authHeaders(true),
+                    body: JSON.stringify({ status })
+                });
+                const data = await readJson(res);
+                if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
+                loadOrders();
+            } catch (err) {
+                alert('Unable to update status: ' + err.message);
+                loadOrders(); // revert the dropdown to the real value
+            }
+        }
+
         function showAddProduct() {
-            document.getElementById('product-form').classList.toggle('hidden');
+            document.getElementById('product-form').classList.remove('hidden');
+        }
+
+        function cancelProductForm() {
+            const form = document.getElementById('product-form');
+            form.classList.add('hidden');
+            form.dataset.editId = '';
+            document.getElementById('product-name').value = '';
+            document.getElementById('product-description').value = '';
+            document.getElementById('product-price').value = '';
+            document.getElementById('product-stock').value = '';
+            document.getElementById('product-category').selectedIndex = 0;
+            document.getElementById('product-image').value = '';
         }
 
         async function saveProduct() {
-            const token = localStorage.getItem('vendor-token');
             const editId = document.getElementById('product-form').dataset.editId;
 
             const product = {
@@ -309,7 +392,8 @@
                 description: document.getElementById('product-description').value,
                 price: parseInt(document.getElementById('product-price').value),
                 category: document.getElementById('product-category').value,
-                image: document.getElementById('product-image').value
+                image: document.getElementById('product-image').value,
+                stock: document.getElementById('product-stock').value ? parseInt(document.getElementById('product-stock').value) : undefined
             };
 
             try {
@@ -318,10 +402,7 @@
 
                 const res = await fetch(`${API_URL}${url}`, {
                     method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: authHeaders(true),
                     body: JSON.stringify(product)
                 });
                 const data = await readJson(res);
@@ -329,16 +410,8 @@
                     throw new Error(data.message || `Request failed (${res.status})`);
                 }
                 if (data.success) {
-                    alert(editId ? 'Product updated!' : 'Product added!');
-                    document.getElementById('product-form').classList.add('hidden');
-                    document.getElementById('product-form').dataset.editId = '';
+                    cancelProductForm();
                     loadProducts();
-                    // Clear form
-                    document.getElementById('product-name').value = '';
-                    document.getElementById('product-description').value = '';
-                    document.getElementById('product-price').value = '';
-                    document.getElementById('product-category').selectedIndex = 0;
-                    document.getElementById('product-image').value = '';
                 } else {
                     alert(data.message || 'Failed to save');
                 }
@@ -353,6 +426,7 @@
             document.getElementById('product-name').value = product.dataset.name;
             document.getElementById('product-description').value = product.dataset.description;
             document.getElementById('product-price').value = product.dataset.price;
+            document.getElementById('product-stock').value = product.dataset.stock;
             document.getElementById('product-category').value = product.dataset.category;
             document.getElementById('product-image').value = product.dataset.image;
             document.getElementById('product-form').dataset.editId = id;
@@ -362,7 +436,6 @@
 
         async function deleteProduct(id) {
             if (!confirm('Delete this product?')) return;
-            const token = localStorage.getItem('vendor-token');
             try {
                 const res = await fetch(`${API_URL}/api/vendor/products/${id}`, {
                     method: 'DELETE',
@@ -399,6 +472,12 @@
                 document.getElementById('dashboard').classList.remove('hidden');
                 showSection('stats');
             }
+
+            let searchDebounce = null;
+            document.getElementById('product-search-input')?.addEventListener('input', () => {
+                clearTimeout(searchDebounce);
+                searchDebounce = setTimeout(loadProducts, 250);
+            });
         });
     </script>
 </body>

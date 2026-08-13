@@ -167,15 +167,17 @@ function addToCart(product) {
 }
 
 function uploadImage(file) {
-  if (!file) return;
-  const formData = new FormData();
-  formData.append('image', file);
-  return fetch('/api/upload/image', {
-    method: 'POST',
-    body: formData,
-  }).then(response => {
-    if (!response.ok) throw new Error('Image upload failed');
-    return response.json();
+  if (!file) return Promise.reject(new Error('No file provided'));
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      apiFetch('/api/upload/image', {
+        method: 'POST',
+        body: JSON.stringify({ image: reader.result })
+      }).then(resolve).catch(reject);
+    };
+    reader.onerror = () => reject(new Error('Unable to read file'));
+    reader.readAsDataURL(file);
   });
 }
 function renderProductCard(product) {
@@ -245,6 +247,9 @@ function updateCategoryButtons(activeCategory) {
 async function loadProducts(listNode, searchInput, category = 'all') {
   const query = searchInput?.value?.trim().toLowerCase() || '';
   const categoryQuery = category !== 'all' ? `&category=${encodeURIComponent(category)}` : '';
+  const priceMin = document.getElementById('price-min-input')?.value;
+  const priceMax = document.getElementById('price-max-input')?.value;
+  const priceQuery = `${priceMin ? `&priceMin=${encodeURIComponent(priceMin)}` : ''}${priceMax ? `&priceMax=${encodeURIComponent(priceMax)}` : ''}`;
   let products = [];
 
   // Show skeleton while loading
@@ -265,7 +270,7 @@ async function loadProducts(listNode, searchInput, category = 'all') {
 
   try {
     // Server handles both search and category filtering — no need to filter again on client
-    products = await apiFetch(`/api/products?search=${encodeURIComponent(query)}${categoryQuery}`);
+    products = await apiFetch(`/api/products?search=${encodeURIComponent(query)}${categoryQuery}${priceQuery}`);
   } catch (err) {
     if (listNode) listNode.innerHTML = '<div class="col-span-full rounded-3xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-red-500">Unable to load products.</div>';
     return;
@@ -319,6 +324,11 @@ async function initIndexPage() {
   searchInput?.addEventListener('input', debounce(async () => {
     await loadProducts(document.getElementById('products-list'), document.getElementById('search-input'), selectedCategory);
   }, 200));
+  const rerunSearch = debounce(async () => {
+    await loadProducts(document.getElementById('products-list'), document.getElementById('search-input'), selectedCategory);
+  }, 300);
+  document.getElementById('price-min-input')?.addEventListener('input', rerunSearch);
+  document.getElementById('price-max-input')?.addEventListener('input', rerunSearch);
   document.getElementById('refresh-recommendations')?.addEventListener('click', async () => {
     await loadRecommendations(document.getElementById('recommendations-list'), selectedCategory);
   });
@@ -605,6 +615,45 @@ function enableLazyImages() {
   }
 }
 
+async function pollPaymentStatus(orderId, status, attempt = 0) {
+  try {
+    const result = await apiFetch(`/api/payment/status/${encodeURIComponent(orderId)}`);
+    if (result.paymentStatus === 'PAID') {
+      saveCart([]);
+      updateCartCounter();
+      if (status) {
+        status.textContent = 'Payment confirmed! Your order is being prepared.';
+        status.className = 'mt-2 text-center text-sm font-medium text-green-600';
+      }
+      setTimeout(() => { window.location.href = 'account.html'; }, 2500);
+      return;
+    }
+    if (result.paymentStatus === 'FAILED') {
+      if (status) {
+        status.textContent = 'Payment failed or was cancelled. Please try again.';
+        status.className = 'mt-2 text-center text-sm font-medium text-red-600';
+      }
+      return;
+    }
+    // still UNPAID/pending - keep polling for up to ~2 minutes (mobile money confirmation can be slow)
+    if (attempt < 24) {
+      if (status) {
+        status.textContent = 'Waiting for payment confirmation...';
+        status.className = 'mt-2 text-center text-sm font-medium text-blue-600';
+      }
+      setTimeout(() => pollPaymentStatus(orderId, status, attempt + 1), 5000);
+    } else if (status) {
+      status.textContent = 'Still waiting for payment confirmation. Check your order history shortly.';
+      status.className = 'mt-2 text-center text-sm font-medium text-yellow-600';
+    }
+  } catch (err) {
+    if (status) {
+      status.textContent = 'Unable to verify payment status.';
+      status.className = 'mt-2 text-center text-sm font-medium text-red-600';
+    }
+  }
+}
+
 async function initCheckoutPage() {
   const itemsContainer = document.getElementById('checkout-items');
   const totalContainer = document.getElementById('checkout-total');
@@ -612,6 +661,30 @@ async function initCheckoutPage() {
   const status = document.getElementById('checkout-status');
 
   if (!itemsContainer || !totalContainer) return;
+
+  // Returning from CinetPay's return_url? Show payment confirmation instead of the form.
+  const returningOrderId = getQueryParam('order');
+  if (returningOrderId) {
+    if (form) form.classList.add('hidden');
+    itemsContainer.innerHTML = '<p class="text-sm text-gray-500">Checking your payment...</p>';
+    if (!currentAuth?.token) {
+      if (status) status.textContent = 'Sign in to confirm your payment status.';
+      return;
+    }
+    await pollPaymentStatus(returningOrderId, status);
+    return;
+  }
+
+  if (!currentAuth?.token) {
+    itemsContainer.innerHTML = '<p class="text-sm text-gray-500">Please sign in to checkout.</p>';
+    totalContainer.textContent = '0 CFA';
+    if (form) form.classList.add('hidden');
+    if (status) {
+      status.innerHTML = '<a href="account.html" class="text-blue-600 underline">Sign in or create an account</a> to place your order.';
+      status.className = 'mt-2 text-center text-sm font-medium text-slate-600';
+    }
+    return;
+  }
 
   const cartItems = loadCart();
   if (cartItems.length === 0) {
@@ -652,33 +725,38 @@ async function initCheckoutPage() {
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
     if (status) {
-      status.textContent = 'Processing order...';
+      status.textContent = 'Creating your order...';
       status.className = 'mt-2 text-center text-sm font-medium text-blue-600';
     }
 
+    const shippingAddress = document.getElementById('shipping-address')?.value?.trim() || '';
+    const shippingCity = document.getElementById('shipping-city')?.value?.trim() || '';
+    const shippingPhone = document.getElementById('shipping-phone')?.value?.trim() || '';
+    const paymentMethod = form.querySelector('input[name="paymentMethod"]:checked')?.value || 'MOMO';
+
     try {
-      if (currentAuth?.token) {
-        await apiFetch('/api/checkout', { // Corrected endpoint to /api/checkout
-          method: 'POST',
-          body: JSON.stringify({ items: cartItems, totalAmount: total })
-        });
-      } else {
-        await new Promise(r => setTimeout(r, 1000));
+      const checkoutResult = await apiFetch('/api/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ items: cartItems, shippingAddress, shippingCity, shippingPhone })
+      });
+
+      if (status) {
+        status.textContent = 'Redirecting to secure payment...';
       }
 
-      saveCart([]);
-      updateCartCounter();
-      if (status) {
-        status.textContent = 'Order placed successfully!';
-        status.className = 'mt-2 text-center text-sm font-medium text-green-600';
-      }
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 2000);
+      const paymentResult = await apiFetch('/api/payment/initiate', {
+        method: 'POST',
+        body: JSON.stringify({ orderId: checkoutResult.order.id, paymentMethod })
+      });
+
+      window.location.href = paymentResult.paymentUrl;
     } catch (err) {
+      if (submitBtn) submitBtn.disabled = false;
       if (status) {
-        status.textContent = 'Failed to place order. Try again.';
+        status.textContent = err.body?.message || err.message || 'Failed to place order. Try again.';
         status.className = 'mt-2 text-center text-sm font-medium text-red-600';
       }
     }
