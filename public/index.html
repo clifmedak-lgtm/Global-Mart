@@ -166,18 +166,30 @@
         </div>
     </section>
 
-    <section id="search-panel" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+    <section id="search-panel" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative overflow-hidden">
         <div class="absolute -top-16 -left-16 w-64 h-64 bg-green-100 rounded-full opacity-10 blur-3xl"></div>
         <div class="rounded-3xl bg-white border border-gray-200 p-6 shadow-sm relative z-10">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                     <h3 class="text-xl font-bold text-gray-900">Search products</h3>
-                    <p class="text-sm text-gray-500 mt-1">Filter by product name, vendor, or category instantly.</p>
+                    <p class="text-sm text-gray-500 mt-1">Filter by product name, vendor, category, or price range.</p>
                 </div>
                 <div class="flex-1">
                     <label for="search-input" class="sr-only">Search product catalog</label>
                     <input id="search-input" type="search" placeholder="Search phones, brands, or vendors"
                         class="w-full rounded-full border border-gray-200 px-5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                </div>
+            </div>
+            <div class="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <span class="text-sm font-medium text-gray-700">Price range (CFA)</span>
+                <div class="flex items-center gap-2">
+                    <label for="price-min-input" class="sr-only">Minimum price</label>
+                    <input id="price-min-input" type="number" min="0" placeholder="Min"
+                        class="w-28 rounded-full border border-gray-200 px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    <span class="text-gray-400">—</span>
+                    <label for="price-max-input" class="sr-only">Maximum price</label>
+                    <input id="price-max-input" type="number" min="0" placeholder="Max"
+                        class="w-28 rounded-full border border-gray-200 px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                 </div>
             </div>
         </div>
@@ -234,7 +246,7 @@
             </div>
         </div>
     </section>
-    <main id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
+    <main id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative overflow-hidden">
         <div class="absolute -top-32 -left-32 w-96 h-96 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
         <div class="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-end mb-8 relative z-10">
             <div>
@@ -332,7 +344,7 @@
                     <button
                         class="add-cart mt-6 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
                         type="button">Add to cart</button>
-                </div> 
+                </div>
             </article>
             <article
                 class="product-card rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:shadow-lg"
@@ -390,7 +402,7 @@
             </article>
         </div>
     </section>
-    <section id="gadget-collections" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+    <section id="gadget-collections" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
         <div class="absolute -top-32 -right-32 w-96 h-96 bg-purple-100 rounded-full opacity-20 blur-3xl"></div>
         <div class="mb-8 relative z-10">
             <h2 class="text-3xl font-bold text-gray-900">Explore more gadget collections</h2>
@@ -452,7 +464,7 @@
             </div>
         </div>
     </section>
-    <section id="recommendations" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+    <section id="recommendations" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
         <div class="absolute -top-32 -right-32 w-96 h-96 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 relative z-10">
             <div>
