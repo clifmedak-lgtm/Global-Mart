@@ -204,7 +204,8 @@
                     <h3 class="text-2xl font-bold text-red-600 flex items-center gap-2">
                         <span>⚡</span> Flash Sales
                     </h3>
-                    <div class="flex gap-2 text-white font-bold text-sm" aria-label="Flash sale countdown timer" aria-live="polite">
+                    <div class="flex gap-2 text-white font-bold text-sm" aria-label="Flash sale countdown timer"
+                        aria-live="polite">
                         <span id="flash-hours" class="bg-gray-900 px-2 py-1 rounded">00h</span>
                         <span class="text-gray-900">:</span>
                         <span id="flash-minutes" class="bg-gray-900 px-2 py-1 rounded">00m</span>
@@ -217,27 +218,28 @@
             </div>
 
             <!-- Flash sale cards loaded dynamically from DB -->
-            <div id="flash-sale-list" class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div id="flash-sale-list"
+                class="grid grid-cols-2 overflow-x-auto scroll-smooth md:grid-cols-4 gap-6 hide-scrollbar">
                 <!-- Skeleton placeholders while loading -->
-                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100">
+                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 min-w-[250px]">
                     <div class="h-40 bg-gray-200 rounded-lg mb-4"></div>
                     <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                     <div class="h-4 bg-gray-200 rounded w-full mb-3"></div>
                     <div class="h-5 bg-gray-200 rounded w-2/3"></div>
                 </div>
-                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100">
+                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 min-w-[250px] ">
                     <div class="h-40 bg-gray-200 rounded-lg mb-4"></div>
                     <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                     <div class="h-4 bg-gray-200 rounded w-full mb-3"></div>
                     <div class="h-5 bg-gray-200 rounded w-2/3"></div>
                 </div>
-                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 hidden md:block">
+                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 min-w-[250px] hidden md:block">
                     <div class="h-40 bg-gray-200 rounded-lg mb-4"></div>
                     <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                     <div class="h-4 bg-gray-200 rounded w-full mb-3"></div>
                     <div class="h-5 bg-gray-200 rounded w-2/3"></div>
                 </div>
-                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 hidden md:block">
+                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 min-w-[250px] hidden md:block">
                     <div class="h-40 bg-gray-200 rounded-lg mb-4"></div>
                     <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                     <div class="h-4 bg-gray-200 rounded w-full mb-3"></div>

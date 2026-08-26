@@ -252,6 +252,11 @@ app.post('/api/payment/initiate', requireAuth, asyncHandler(async (req, res) => 
     return res.status(400).json({ success: false, message: 'Order already paid' });
   }
 
+  // NotchPay only lets us restrict by category — "mobile_money" (covers both MTN and Orange)
+  // or "card". The specific operator (MTN vs Orange) is auto-detected from the phone number
+  // itself once the customer is on NotchPay's page, not something we can force from here.
+  const channels = paymentMethod === 'CARD' ? ['card'] : ['mobile_money'];
+
   const payload = {
     amount: order.totalAmount,
     currency: 'XAF',
@@ -260,6 +265,7 @@ app.post('/api/payment/initiate', requireAuth, asyncHandler(async (req, res) => 
     reference: order.id,
     description: `Commande GlobalMart #${order.id}`,
     callback: `${APP_URL}/checkout.html?order=${order.id}`,
+    channels,
   };
 
   const notchpayRes = await fetch(`${NOTCHPAY_BASE_URL}/payments/initialize`, {
@@ -313,7 +319,7 @@ async function markOrderFromNotchpayResult(orderId, result) {
       await prisma.product.updateMany({
         where: { id: item.productId, stock: { gte: item.quantity } },
         data: { stock: { decrement: item.quantity } }
-      }).catch(() => { });
+      }).catch(() => {});
     }
     return updated;
   }
@@ -422,12 +428,10 @@ app.get('/api/vendor/products', requireVendor, asyncHandler(async (req, res) => 
   const where = { ...vendorProductsWhere(req.user) };
   if (search) {
     const term = String(search).trim();
-    where.AND = [{
-      OR: [
-        { name: { contains: term, mode: 'insensitive' } },
-        { category: { contains: term, mode: 'insensitive' } },
-      ]
-    }];
+    where.AND = [{ OR: [
+      { name: { contains: term, mode: 'insensitive' } },
+      { category: { contains: term, mode: 'insensitive' } },
+    ] }];
   }
   const products = await prisma.product.findMany({ where, orderBy: { createdAt: 'desc' } });
   res.json(products);
