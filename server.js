@@ -191,6 +191,15 @@ app.get('/api/orders/:id', requireAuth, asyncHandler(async (req, res) => {
 // Step 1 of checkout: create the order in PENDING_PAYMENT / UNPAID state.
 // No money moves yet - the order only becomes real (PROCESSING/PAID) once
 // /api/payment/notify or /api/payment/status confirms the CinetPay transaction.
+// Flat delivery fee for now (CFA). Configurable via env so it's data, not hardcoded frontend logic.
+// A future upgrade can turn this into a per-city table once volume justifies it.
+const DELIVERY_FEE_XAF = Math.max(0, parseInt(process.env.DELIVERY_FEE_XAF) || 1000);
+
+// Public — lets the frontend show the correct total (incl. delivery) before the customer commits.
+app.get('/api/config', (req, res) => {
+  res.json({ deliveryFeeXaf: DELIVERY_FEE_XAF });
+});
+
 app.post('/api/checkout', requireAuth, asyncHandler(async (req, res) => {
   const { items, shippingAddress, shippingCity, shippingPhone } = req.body;
 
@@ -203,25 +212,54 @@ app.post('/api/checkout', requireAuth, asyncHandler(async (req, res) => {
 
   const productIds = items.map(i => String(i.id || i.productId)).filter(Boolean);
   const dbProducts = await prisma.product.findMany({ where: { id: { in: productIds } } });
-  const priceMap = Object.fromEntries(dbProducts.map(p => [p.id, p.price]));
+  const productById = Object.fromEntries(dbProducts.map(p => [p.id, p]));
 
-  const orderItems = items
-    .filter(i => priceMap[String(i.id || i.productId)] !== undefined)
+  const requestedItems = items
+    .filter(i => productById[String(i.id || i.productId)] !== undefined)
     .map(i => ({
       productId: String(i.id || i.productId),
       quantity: Math.max(1, parseInt(i.quantity) || 1),
-      price: priceMap[String(i.id || i.productId)],
     }));
 
-  if (!orderItems.length) {
+  if (!requestedItems.length) {
     return res.status(400).json({ success: false, message: 'No valid products in cart' });
   }
 
-  const totalAmount = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  // Stock check — catches obvious overselling. Not a hard reservation lock (two people
+  // could still race on the very last unit before either pays), but it stops the common
+  // case: someone trying to order more than what's actually available right now.
+  const outOfStock = requestedItems
+    .map(i => ({ ...i, product: productById[i.productId] }))
+    .filter(i => i.product.stock < i.quantity);
+
+  if (outOfStock.length) {
+    return res.status(409).json({
+      success: false,
+      message: 'Some items in your cart no longer have enough stock',
+      outOfStock: outOfStock.map(i => ({
+        productId: i.productId,
+        name: i.product.name,
+        requested: i.quantity,
+        available: i.product.stock,
+      })),
+    });
+  }
+
+  const orderItems = requestedItems.map(i => ({
+    productId: i.productId,
+    quantity: i.quantity,
+    price: productById[i.productId].price,
+  }));
+
+  const itemsSubtotal = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const deliveryFee = DELIVERY_FEE_XAF;
+  const totalAmount = itemsSubtotal + deliveryFee;
 
   const order = await prisma.order.create({
     data: {
       userId: req.user.id,
+      itemsSubtotal,
+      deliveryFee,
       totalAmount,
       status: 'PENDING_PAYMENT',
       paymentStatus: 'UNPAID',
@@ -547,23 +585,27 @@ app.get('/api/vendor/stats', requireVendor, asyncHandler(async (req, res) => {
     orderCount: orders.length,
     totalRevenue,
     products,
-    orders: orders.map(o => ({
-      id: o.id,
-      customerName: o.user.fullName,
-      totalAmount: o.totalAmount,
-      status: o.status,
-      paymentStatus: o.paymentStatus,
-      shippingAddress: o.shippingAddress,
-      shippingCity: o.shippingCity,
-      shippingPhone: o.shippingPhone,
-      createdAt: o.createdAt,
-      // Only this vendor's line items from the order, with product name/qty for display
-      items: o.items.filter(isMine).map(i => ({
-        productName: i.product?.name || 'Product',
-        quantity: i.quantity,
-        price: i.price,
-      }))
-    }))
+    orders: orders.map(o => {
+      const myItems = o.items.filter(isMine);
+      const vendorAmount = myItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      return {
+        id: o.id,
+        customerName: o.user.fullName,
+        vendorAmount, // this vendor's share only — excludes delivery fee and other vendors' items
+        status: o.status,
+        paymentStatus: o.paymentStatus,
+        shippingAddress: o.shippingAddress,
+        shippingCity: o.shippingCity,
+        shippingPhone: o.shippingPhone,
+        createdAt: o.createdAt,
+        // Only this vendor's line items from the order, with product name/qty for display
+        items: myItems.map(i => ({
+          productName: i.product?.name || 'Product',
+          quantity: i.quantity,
+          price: i.price,
+        }))
+      };
+    })
   });
 }));
 

@@ -56,7 +56,9 @@ model Order {
   id          String      @id @default(cuid())
   userId      String
   user        User        @relation(fields: [userId], references: [id])
-  totalAmount Int         // Store in cents/smallest unit
+  itemsSubtotal Int       @default(0) // Sum of product prices x quantity, before delivery
+  deliveryFee   Int       @default(0) // Flat delivery fee applied at checkout time
+  totalAmount Int         // itemsSubtotal + deliveryFee — this is what's actually charged
   // Order lifecycle: PENDING_PAYMENT -> PROCESSING -> SHIPPED -> DELIVERED (or CANCELLED at any point before SHIPPED)
   status      String      @default("PENDING_PAYMENT")
   // Payment lifecycle: UNPAID -> PAID / FAILED

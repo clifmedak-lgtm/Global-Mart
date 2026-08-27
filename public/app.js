@@ -369,7 +369,7 @@ async function initProductPage() {
     return;
   }
   try {
-   const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
+    const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
     const imageHtml = product.image
       ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="h-96 w-full object-cover">`
       : `<div class="h-96 w-full bg-gray-100 flex items-center justify-center text-6xl text-gray-400">📦</div>`;
@@ -720,8 +720,19 @@ async function initCheckoutPage() {
     `;
   }).join('');
 
+  // Fetch the current delivery fee so what's shown matches what the server will actually charge.
+  let deliveryFee = 0;
+  try {
+    const config = await apiFetch('/api/config');
+    deliveryFee = config.deliveryFeeXaf || 0;
+  } catch (err) {
+    // If this fails, fall back to showing items-only total — the real total (with delivery)
+    // is still authoritative from the server once the order is created.
+  }
 
-  totalContainer.textContent = formatMoney(total);
+  const summaryContainer = document.getElementById('checkout-delivery-fee');
+  if (summaryContainer) summaryContainer.textContent = formatMoney(deliveryFee);
+  totalContainer.textContent = formatMoney(total + deliveryFee);
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -756,7 +767,12 @@ async function initCheckoutPage() {
     } catch (err) {
       if (submitBtn) submitBtn.disabled = false;
       if (status) {
-        status.textContent = err.body?.message || err.message || 'Failed to place order. Try again.';
+        if (err.body?.outOfStock?.length) {
+          const list = err.body.outOfStock.map(i => `${escapeHtml(i.name)} (only ${i.available} left, you asked for ${i.requested})`).join(', ');
+          status.textContent = `Not enough stock: ${list}. Please adjust your cart.`;
+        } else {
+          status.textContent = err.body?.message || err.message || 'Failed to place order. Try again.';
+        }
         status.className = 'mt-2 text-center text-sm font-medium text-red-600';
       }
     }
