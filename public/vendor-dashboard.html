@@ -94,7 +94,7 @@
                                 <p class="text-3xl font-bold" id="stat-orders">0</p>
                             </div>
                             <div class="bg-white p-6 rounded-lg shadow">
-                                <p class="text-gray-600 text-sm">Revenue</p>
+                                <p class="text-gray-600 text-sm">Revenue <span id="stat-commission-note" class="text-gray-400"></span></p>
                                 <p class="text-3xl font-bold" id="stat-revenue">0 CFA</p>
                             </div>
                         </div>
@@ -303,6 +303,7 @@
                 document.getElementById('stat-products').textContent = data.productCount || 0;
                 document.getElementById('stat-orders').textContent = data.orderCount || 0;
                 document.getElementById('stat-revenue').textContent = (data.totalRevenue || 0).toLocaleString() + ' CFA';
+                document.getElementById('stat-commission-note').textContent = data.commissionRatePercent !== undefined ? `(after ${data.commissionRatePercent}% platform fee)` : '';
 
                 const ordersList = (data.orders || []).map(o => `
                     <div class="p-4 bg-gray-50 rounded">
@@ -372,7 +373,7 @@
             const itemsHtml = (o.items || []).map(i => `
                 <div class="flex justify-between text-sm text-gray-700 py-1">
                     <span>${escapeHtml(i.productName)} <span class="text-gray-400">x${i.quantity}</span></span>
-                    <span>${Number((i.price || 0) * i.quantity).toLocaleString()} CFA</span>
+                    <span>${Number((i.price || 0) * i.quantity).toLocaleString()} CFA <span class="text-xs text-gray-400">(you keep ${Number(i.vendorEarning || 0).toLocaleString()})</span></span>
                 </div>
             `).join('');
             const statusOptions = ORDER_STATUSES.map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${STATUS_LABELS[s]}</option>`).join('');

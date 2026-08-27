@@ -84,5 +84,10 @@ model OrderItem {
   product   Product   @relation(fields: [productId], references: [id]) // Link to Product model
   quantity  Int
   price     Int       // Price at the time of order
+  // Commission snapshot — locked in at order time so a later rate change never
+  // retroactively rewrites past earnings. platformFee + vendorEarning == price * quantity.
+  commissionRate Float @default(0)  // e.g. 0.10 for 10%, as it was at the time of this order
+  platformFee    Int   @default(0)  // GlobalMart's cut, in the same currency unit as price
+  vendorEarning  Int   @default(0)  // What the vendor actually earns from this line
   createdAt DateTime  @default(now())
 }

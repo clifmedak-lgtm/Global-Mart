@@ -195,9 +195,13 @@ app.get('/api/orders/:id', requireAuth, asyncHandler(async (req, res) => {
 // A future upgrade can turn this into a per-city table once volume justifies it.
 const DELIVERY_FEE_XAF = Math.max(0, parseInt(process.env.DELIVERY_FEE_XAF) || 1000);
 
+// GlobalMart's cut of each sale, as a percentage (e.g. 10 = 10%). Only applies to product
+// revenue, never to the delivery fee (delivery already goes to the platform in full).
+const COMMISSION_RATE_PERCENT = Math.min(100, Math.max(0, parseFloat(process.env.COMMISSION_RATE_PERCENT) || 10));
+
 // Public — lets the frontend show the correct total (incl. delivery) before the customer commits.
 app.get('/api/config', (req, res) => {
-  res.json({ deliveryFeeXaf: DELIVERY_FEE_XAF });
+  res.json({ deliveryFeeXaf: DELIVERY_FEE_XAF, commissionRatePercent: COMMISSION_RATE_PERCENT });
 });
 
 app.post('/api/checkout', requireAuth, asyncHandler(async (req, res) => {
@@ -245,11 +249,21 @@ app.post('/api/checkout', requireAuth, asyncHandler(async (req, res) => {
     });
   }
 
-  const orderItems = requestedItems.map(i => ({
-    productId: i.productId,
-    quantity: i.quantity,
-    price: productById[i.productId].price,
-  }));
+  const commissionRate = COMMISSION_RATE_PERCENT / 100;
+
+  const orderItems = requestedItems.map(i => {
+    const price = productById[i.productId].price;
+    const lineTotal = price * i.quantity;
+    const platformFee = Math.round(lineTotal * commissionRate);
+    return {
+      productId: i.productId,
+      quantity: i.quantity,
+      price,
+      commissionRate,
+      platformFee,
+      vendorEarning: lineTotal - platformFee,
+    };
+  });
 
   const itemsSubtotal = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const deliveryFee = DELIVERY_FEE_XAF;
@@ -570,13 +584,14 @@ app.get('/api/vendor/stats', requireVendor, asyncHandler(async (req, res) => {
 
   const isMine = (item) => item.product?.vendorId === req.user.id || item.product?.vendor === req.user.fullName;
 
-  // Revenue only counts confirmed/paid orders.
+  // Revenue only counts confirmed/paid orders, and is the vendor's NET earning
+  // (after GlobalMart's commission) — not the gross sale price.
   const totalRevenue = orders
     .filter(order => order.paymentStatus === 'PAID')
     .reduce((sum, order) => {
       const vendorAmount = order.items
         .filter(isMine)
-        .reduce((itemSum, item) => itemSum + (item.price * item.quantity), 0);
+        .reduce((itemSum, item) => itemSum + item.vendorEarning, 0);
       return sum + vendorAmount;
     }, 0);
 
@@ -584,25 +599,28 @@ app.get('/api/vendor/stats', requireVendor, asyncHandler(async (req, res) => {
     productCount: products.length,
     orderCount: orders.length,
     totalRevenue,
+    commissionRatePercent: COMMISSION_RATE_PERCENT,
     products,
     orders: orders.map(o => {
       const myItems = o.items.filter(isMine);
-      const vendorAmount = myItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const vendorAmount = myItems.reduce((sum, item) => sum + item.vendorEarning, 0);
       return {
         id: o.id,
         customerName: o.user.fullName,
-        vendorAmount, // this vendor's share only — excludes delivery fee and other vendors' items
+        vendorAmount, // this vendor's NET share (after commission) — excludes delivery fee and other vendors' items
         status: o.status,
         paymentStatus: o.paymentStatus,
         shippingAddress: o.shippingAddress,
         shippingCity: o.shippingCity,
         shippingPhone: o.shippingPhone,
         createdAt: o.createdAt,
-        // Only this vendor's line items from the order, with product name/qty for display
+        // Only this vendor's line items from the order, with product name/qty and the fee breakdown
         items: myItems.map(i => ({
           productName: i.product?.name || 'Product',
           quantity: i.quantity,
           price: i.price,
+          platformFee: i.platformFee,
+          vendorEarning: i.vendorEarning,
         }))
       };
     })
