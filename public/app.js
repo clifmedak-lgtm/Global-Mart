@@ -391,6 +391,7 @@ async function initProductPage() {
             <div class="mt-6 flex flex-wrap gap-3">
               <button id="product-add-cart" class="rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition">Add to cart</button>
               <button id="view-cart-button" class="rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 hover:border-blue-600 hover:text-blue-600 transition">View cart</button>
+              <button id="wishlist-toggle" class="rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 hover:border-pink-500 hover:text-pink-600 transition">🤍 Save</button>
             </div>
           </div>
           <div class="rounded-3xl bg-white p-6 shadow-sm">
@@ -399,6 +400,7 @@ async function initProductPage() {
           </div>
         </div>
       </div>
+      <div id="product-reviews" class="mt-10 rounded-3xl bg-white p-6 shadow-sm"></div>
     `;
     document.getElementById('product-add-cart')?.addEventListener('click', () => {
       addToCart(product);
@@ -407,11 +409,144 @@ async function initProductPage() {
     document.getElementById('view-cart-button')?.addEventListener('click', () => {
       toggleCartDrawer(true);
     });
+    initWishlistButton(productId);
+    initProductReviews(productId);
     await loadRecommendations(document.getElementById('recommendations-list'));
   } catch (error) {
     detailNode.innerHTML = '<p class="text-center text-sm text-red-600">Unable to load product details.</p>';
     console.error(error);
   }
+}
+
+async function initWishlistButton(productId) {
+  const btn = document.getElementById('wishlist-toggle');
+  if (!btn) return;
+
+  if (!currentAuth?.token) {
+    btn.addEventListener('click', () => {
+      window.location.href = 'account.html';
+    });
+    return;
+  }
+
+  let isSaved = false;
+  try {
+    const wishlist = await apiFetch('/api/wishlist');
+    isSaved = wishlist.some(p => p.id === productId);
+  } catch (err) {
+    // If this fails, leave the button in its default (not saved) state — non-critical.
+  }
+
+  const render = () => {
+    btn.textContent = isSaved ? '❤️ Saved' : '🤍 Save';
+  };
+  render();
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      if (isSaved) {
+        await apiFetch(`/api/wishlist/${encodeURIComponent(productId)}`, { method: 'DELETE' });
+      } else {
+        await apiFetch(`/api/wishlist/${encodeURIComponent(productId)}`, { method: 'POST' });
+      }
+      isSaved = !isSaved;
+      render();
+    } catch (err) {
+      alert(err.body?.message || err.message || 'Something went wrong.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
+function renderStars(rating) {
+  const full = Math.round(rating || 0);
+  return Array.from({ length: 5 }, (_, i) => i < full ? '★' : '☆').join('');
+}
+
+async function initProductReviews(productId) {
+  const container = document.getElementById('product-reviews');
+  if (!container) return;
+
+  async function renderReviews() {
+    let data;
+    try {
+      data = await apiFetch(`/api/products/${encodeURIComponent(productId)}/reviews`);
+    } catch (err) {
+      container.innerHTML = '<p class="text-sm text-red-600">Unable to load reviews.</p>';
+      return;
+    }
+
+    const summaryHtml = data.summary.count
+      ? `<div class="flex items-center gap-2 mb-6">
+           <span class="text-2xl text-yellow-500">${renderStars(data.summary.average)}</span>
+           <span class="text-sm text-slate-600">${data.summary.average.toFixed(1)} out of 5 (${data.summary.count} review${data.summary.count > 1 ? 's' : ''})</span>
+         </div>`
+      : '<p class="text-sm text-slate-500 mb-6">No reviews yet — be the first to review this product.</p>';
+
+    const reviewsHtml = data.reviews.map(r => `
+      <div class="border-b border-slate-100 py-4 last:border-0">
+        <div class="flex items-center gap-2">
+          <span class="text-yellow-500">${renderStars(r.rating)}</span>
+          <span class="text-sm font-semibold text-slate-900">${escapeHtml(r.reviewerName)}</span>
+          ${r.verifiedPurchase ? '<span class="text-xs text-green-600 bg-green-50 rounded-full px-2 py-0.5">Verified purchase</span>' : ''}
+        </div>
+        ${r.comment ? `<p class="mt-2 text-sm text-slate-600">${escapeHtml(r.comment)}</p>` : ''}
+        <p class="mt-1 text-xs text-slate-400">${new Date(r.createdAt).toLocaleDateString()}</p>
+      </div>
+    `).join('');
+
+    const formHtml = currentAuth?.token ? `
+      <form id="review-form" class="mt-6 rounded-2xl border border-slate-200 p-4 space-y-3">
+        <p class="text-sm font-semibold text-slate-900">Leave a review</p>
+        <div class="flex gap-1" id="review-star-input">
+          ${[1, 2, 3, 4, 5].map(n => `<button type="button" data-value="${n}" class="review-star text-2xl text-slate-300">★</button>`).join('')}
+        </div>
+        <input type="hidden" name="rating" required />
+        <textarea name="comment" rows="3" placeholder="Optional comment..." class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"></textarea>
+        <button type="submit" class="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">Submit review</button>
+        <p id="review-form-status" class="text-sm"></p>
+      </form>
+    ` : `<p class="mt-6 text-sm text-slate-500"><a href="account.html" class="text-blue-600 underline">Sign in</a> to leave a review.</p>`;
+
+    container.innerHTML = `<h2 class="text-lg font-semibold text-slate-900 mb-2">Customer reviews</h2>${summaryHtml}${reviewsHtml}${formHtml}`;
+
+    const starButtons = container.querySelectorAll('.review-star');
+    const ratingInput = container.querySelector('input[name="rating"]');
+    starButtons.forEach(star => {
+      star.addEventListener('click', () => {
+        const value = parseInt(star.dataset.value);
+        ratingInput.value = value;
+        starButtons.forEach(s => {
+          s.classList.toggle('text-yellow-500', parseInt(s.dataset.value) <= value);
+          s.classList.toggle('text-slate-300', parseInt(s.dataset.value) > value);
+        });
+      });
+    });
+
+    container.querySelector('#review-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = container.querySelector('#review-form-status');
+      if (!ratingInput.value) {
+        status.textContent = 'Please select a star rating.';
+        status.className = 'text-sm text-red-600';
+        return;
+      }
+      try {
+        await apiFetch(`/api/products/${encodeURIComponent(productId)}/reviews`, {
+          method: 'POST',
+          body: JSON.stringify({ rating: ratingInput.value, comment: e.target.querySelector('textarea[name="comment"]').value })
+        });
+        await renderReviews(); // refresh list + summary in place
+      } catch (err) {
+        status.textContent = err.body?.message || err.message || 'Failed to submit review.';
+        status.className = 'text-sm text-red-600';
+      }
+    });
+  }
+
+  await renderReviews();
 }
 
 async function loadOrderHistory() {
@@ -455,6 +590,45 @@ async function loadOrderHistory() {
   }
 }
 
+async function loadWishlist() {
+  const container = document.getElementById('wishlist-items');
+  if (!container) return;
+  if (!currentAuth?.token) {
+    container.innerHTML = '<p class="text-sm text-gray-500">Sign in to view your wishlist.</p>';
+    return;
+  }
+  try {
+    const products = await apiFetch('/api/wishlist');
+    if (products.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-500 col-span-full">No saved products yet. Tap 🤍 Save on any product to add it here.</p>';
+      return;
+    }
+    container.innerHTML = products.map(p => `
+      <div class="rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+        ${p.image ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="w-16 h-16 rounded-xl object-cover flex-shrink-0">` : '<div class="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-2xl flex-shrink-0">📦</div>'}
+        <div class="flex-1 min-w-0">
+          <a href="product.html?id=${encodeURIComponent(p.id)}" class="text-sm font-semibold text-slate-900 hover:text-blue-600 truncate block">${escapeHtml(p.name)}</a>
+          <p class="text-sm text-blue-600 font-semibold mt-1">${formatMoney(p.price)}</p>
+        </div>
+        <button data-remove-wishlist="${p.id}" class="text-slate-400 hover:text-red-600 text-lg flex-shrink-0" aria-label="Remove from wishlist">✕</button>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('[data-remove-wishlist]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/wishlist/${encodeURIComponent(btn.dataset.removeWishlist)}`, { method: 'DELETE' });
+          await loadWishlist();
+        } catch (err) {
+          alert(err.body?.message || err.message || 'Failed to remove item.');
+        }
+      });
+    });
+  } catch (error) {
+    container.innerHTML = '<p class="text-sm text-red-600 col-span-full">Unable to load wishlist at this time.</p>';
+  }
+}
+
 async function initAccountPage() {
   const authArea = document.getElementById('auth-area');
   const profileArea = document.getElementById('profile-area');
@@ -469,6 +643,7 @@ async function initAccountPage() {
     const profileEmailEl = document.getElementById('profile-email');
     if (profileEmailEl) profileEmailEl.textContent = currentAuth.user.email;
     loadOrderHistory();
+    loadWishlist();
     signOutButton?.addEventListener('click', () => {
       clearAuth();
       window.location.reload();

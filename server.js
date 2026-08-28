@@ -240,6 +240,97 @@ app.get('/api/recommendations', asyncHandler(async (req, res) => {
   res.json(products);
 }));
 
+// ===== REVIEWS =====
+
+app.get('/api/products/:id/reviews', asyncHandler(async (req, res) => {
+  const reviews = await prisma.review.findMany({
+    where: { productId: req.params.id },
+    orderBy: { createdAt: 'desc' },
+    include: { user: true }
+  });
+  const summary = {
+    count: reviews.length,
+    average: reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null,
+  };
+  res.json({
+    summary,
+    reviews: reviews.map(r => ({
+      id: r.id,
+      rating: r.rating,
+      comment: r.comment,
+      verifiedPurchase: r.verifiedPurchase,
+      reviewerName: r.user.fullName,
+      createdAt: r.createdAt,
+    }))
+  });
+}));
+
+app.post('/api/products/:id/reviews', requireAuth, asyncHandler(async (req, res) => {
+  const { rating, comment } = req.body;
+  const ratingNum = parseInt(rating);
+  if (!ratingNum || ratingNum < 1 || ratingNum > 5) {
+    return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5' });
+  }
+
+  const product = await prisma.product.findUnique({ where: { id: req.params.id } });
+  if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+  // A review is marked "verified purchase" if this customer has a PAID order containing this product.
+  const hasPurchased = await prisma.orderItem.findFirst({
+    where: { productId: req.params.id, order: { userId: req.user.id, paymentStatus: 'PAID' } }
+  });
+
+  try {
+    const review = await prisma.review.upsert({
+      where: { productId_userId: { productId: req.params.id, userId: req.user.id } },
+      update: { rating: ratingNum, comment: comment?.trim() || null, verifiedPurchase: !!hasPurchased },
+      create: {
+        productId: req.params.id,
+        userId: req.user.id,
+        rating: ratingNum,
+        comment: comment?.trim() || null,
+        verifiedPurchase: !!hasPurchased,
+      }
+    });
+
+    // Keep Product.rating (used for sorting/recommendations) in sync with the real average.
+    const agg = await prisma.review.aggregate({ where: { productId: req.params.id }, _avg: { rating: true } });
+    await prisma.product.update({ where: { id: req.params.id }, data: { rating: agg._avg.rating || null } });
+
+    res.json({ success: true, review });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Failed to save review' });
+  }
+}));
+
+// ===== WISHLIST =====
+
+app.get('/api/wishlist', requireAuth, asyncHandler(async (req, res) => {
+  const items = await prisma.wishlistItem.findMany({
+    where: { userId: req.user.id },
+    orderBy: { createdAt: 'desc' },
+    include: { product: true }
+  });
+  res.json(items.map(i => i.product));
+}));
+
+app.post('/api/wishlist/:productId', requireAuth, asyncHandler(async (req, res) => {
+  const product = await prisma.product.findUnique({ where: { id: req.params.productId } });
+  if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+
+  await prisma.wishlistItem.upsert({
+    where: { userId_productId: { userId: req.user.id, productId: req.params.productId } },
+    update: {},
+    create: { userId: req.user.id, productId: req.params.productId },
+  });
+  res.json({ success: true });
+}));
+
+app.delete('/api/wishlist/:productId', requireAuth, asyncHandler(async (req, res) => {
+  await prisma.wishlistItem.deleteMany({ where: { userId: req.user.id, productId: req.params.productId } });
+  res.json({ success: true });
+}));
+
 app.get('/api/orders', requireAuth, asyncHandler(async (req, res) => {
   const orders = await prisma.order.findMany({
     where: { userId: req.user.id },

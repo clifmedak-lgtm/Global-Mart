@@ -23,6 +23,8 @@ model User {
   businessName String?
   products  Product[] @relation("VendorProducts")
   passwordResetTokens PasswordResetToken[]
+  reviews   Review[]
+  wishlistItems WishlistItem[]
 }
 
 model PasswordResetToken {
@@ -61,8 +63,37 @@ model Product {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   orderItems  OrderItem[]
+  reviews     Review[]
+  wishlistItems WishlistItem[]
 
   @@index([vendorId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int      // 1-5
+  comment   String?
+  verifiedPurchase Boolean @default(false) // true if the reviewer has a PAID order containing this product
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId]) // one review per customer per product
+  @@index([productId])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
 }
 
 model Order {
