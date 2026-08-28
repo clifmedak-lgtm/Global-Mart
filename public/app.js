@@ -369,7 +369,7 @@ async function initProductPage() {
     return;
   }
   try {
-    const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
+   const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
     const imageHtml = product.image
       ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="h-96 w-full object-cover">`
       : `<div class="h-96 w-full bg-gray-100 flex items-center justify-center text-6xl text-gray-400">📦</div>`;
@@ -503,6 +503,33 @@ async function initAccountPage() {
       window.location.reload();
     } catch (err) {
       alert(err.body?.message || err.message || 'Registration failed');
+    }
+  });
+
+  const forgotForm = document.getElementById('forgot-password-form');
+  document.getElementById('forgot-password-toggle')?.addEventListener('click', () => {
+    forgotForm?.classList.toggle('hidden');
+  });
+  forgotForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.target;
+    const email = form.querySelector('input[name="email"]').value;
+    const status = document.getElementById('forgot-password-status');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const result = await apiFetch('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+      if (status) {
+        status.textContent = result.message || 'If that email is registered, a reset link has been sent.';
+        status.className = 'text-sm text-center text-green-600';
+      }
+    } catch (err) {
+      if (status) {
+        status.textContent = err.body?.message || err.message || 'Something went wrong. Try again.';
+        status.className = 'text-sm text-center text-red-600';
+      }
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
     }
   });
 }

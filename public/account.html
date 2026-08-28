@@ -30,8 +30,7 @@
       </div>
       <nav class="hidden items-center gap-8 md:flex">
         <a href="index.html" class="text-sm font-medium text-slate-600 hover:text-blue-600">Home</a>
-        <a href="account.html" id="account-button"
-          class="text-sm font-medium text-slate-600 hover:text-blue-600">Account</a>
+        <a href="account.html" id="account-button" class="text-sm font-medium text-slate-600 hover:text-blue-600">Account</a>
       </nav>
       <div class="flex items-center gap-3">
         <button id="cart-open-button"
@@ -45,8 +44,7 @@
     <div id="mobile-menu" class="md:hidden hidden border-t border-slate-200 bg-white">
       <div class="space-y-2 px-4 py-4">
         <a href="index.html" class="block rounded-xl px-4 py-2 text-slate-700 hover:bg-slate-100">Home</a>
-        <a href="account.html" id="mobile-account-button"
-          class="block rounded-xl px-4 py-2 text-slate-700 hover:bg-slate-100 font-semibold">Sign in / Account</a>
+        <a href="account.html" id="mobile-account-button" class="block rounded-xl px-4 py-2 text-slate-700 hover:bg-slate-100 font-semibold">Sign in / Account</a>
       </div>
     </div>
   </header>
@@ -84,6 +82,19 @@
               <button type="submit"
                 class="w-full rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700">Sign
                 in</button>
+              <button type="button" id="forgot-password-toggle"
+                class="text-xs text-blue-600 hover:underline">Forgot your password?</button>
+            </form>
+
+            <form id="forgot-password-form" class="hidden space-y-4 mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div>
+                <label class="text-sm font-medium text-slate-700">Enter your account email</label>
+                <input name="email" type="email" required
+                  class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <button type="submit"
+                class="w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">Send reset link</button>
+              <p id="forgot-password-status" class="text-sm text-center"></p>
             </form>
           </div>
           <div class="mt-10 border-t border-slate-200 pt-8">

@@ -122,6 +122,29 @@ app.get('/api/products', asyncHandler(async (req, res) => {
   res.json(products);
 }));
 
+// ===== EMAIL (Brevo — password reset, etc.) =====
+
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const EMAIL_FROM = process.env.EMAIL_FROM; // must be a verified sender in your Brevo account
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'GlobalMart';
+
+async function sendEmail({ to, subject, htmlContent }) {
+  if (!BREVO_API_KEY || !EMAIL_FROM) {
+    console.warn('BREVO_API_KEY/EMAIL_FROM not set — email not sent. Would have sent:', { to, subject });
+    return;
+  }
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ sender: { name: EMAIL_FROM_NAME, email: EMAIL_FROM }, to: [{ email: to }], subject, htmlContent }),
+  });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    console.error('Brevo send error:', errBody);
+    throw new Error('Failed to send email');
+  }
+}
+
 app.post('/api/auth/register', asyncHandler(async (req, res) => {
   const { fullName, email, password } = req.body;
   if (!fullName?.trim() || !email?.trim() || !password?.trim()) {
@@ -156,6 +179,55 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
   await prisma.session.create({ data: { token, userId: user.id, expiresAt } });
 
   res.json({ token, user: { fullName: user.fullName, email: user.email, role: user.role } });
+}));
+
+app.post('/api/auth/forgot-password', asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  // Always respond the same way whether or not the email exists — never reveal which
+  // emails are registered.
+  const genericResponse = { success: true, message: 'If that email is registered, a reset link has been sent.' };
+  if (!email?.trim()) return res.json(genericResponse);
+
+  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
+  if (!user) return res.json(genericResponse);
+
+  const token = generateToken();
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  await prisma.passwordResetToken.create({ data: { token, userId: user.id, expiresAt } });
+
+  const resetUrl = `${APP_URL}/reset-password.html?token=${token}`;
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: 'Reset your GlobalMart password',
+      htmlContent: `<p>Hi ${user.fullName},</p><p>Click the link below to reset your password. This link expires in 1 hour.</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you didn't request this, you can safely ignore this email.</p>`,
+    });
+  } catch (e) {
+    console.error('Failed to send reset email:', e);
+    // Still respond success — the token exists even if the email send failed, and we
+    // don't want to leak whether the email is registered via a different error path.
+  }
+
+  res.json(genericResponse);
+}));
+
+app.post('/api/auth/reset-password', asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword || newPassword.length < 6) {
+    return res.status(400).json({ success: false, message: 'A valid token and a password of at least 6 characters are required' });
+  }
+
+  const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
+  if (!resetToken || resetToken.usedAt || new Date(resetToken.expiresAt) < new Date()) {
+    return res.status(400).json({ success: false, message: 'This reset link is invalid or has expired. Please request a new one.' });
+  }
+
+  const hashed = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id: resetToken.userId }, data: { password: hashed } });
+  await prisma.passwordResetToken.update({ where: { token }, data: { usedAt: new Date() } });
+  await prisma.session.deleteMany({ where: { userId: resetToken.userId } }); // force re-login everywhere
+
+  res.json({ success: true, message: 'Password updated. You can now sign in with your new password.' });
 }));
 
 app.get('/api/recommendations', asyncHandler(async (req, res) => {
