@@ -369,7 +369,7 @@ async function initProductPage() {
     return;
   }
   try {
-    const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
+   const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
     const imageHtml = product.image
       ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="h-96 w-full object-cover">`
       : `<div class="h-96 w-full bg-gray-100 flex items-center justify-center text-6xl text-gray-400">📦</div>`;
@@ -934,7 +934,47 @@ async function initCheckoutPage() {
 
   const summaryContainer = document.getElementById('checkout-delivery-fee');
   if (summaryContainer) summaryContainer.textContent = formatMoney(deliveryFee);
-  totalContainer.textContent = formatMoney(total + deliveryFee);
+
+  let appliedDiscount = 0;
+  let appliedCouponCode = '';
+  const discountRow = document.getElementById('checkout-discount-row');
+  const discountAmountEl = document.getElementById('checkout-discount');
+  const couponStatus = document.getElementById('coupon-status');
+
+  function renderCheckoutTotal() {
+    totalContainer.textContent = formatMoney(total - appliedDiscount + deliveryFee);
+  }
+  renderCheckoutTotal();
+
+  document.getElementById('coupon-apply-button')?.addEventListener('click', async () => {
+    const codeInput = document.getElementById('coupon-input');
+    const code = codeInput?.value?.trim();
+    if (!code) return;
+    try {
+      const result = await apiFetch('/api/coupons/validate', {
+        method: 'POST',
+        body: JSON.stringify({ code, itemsSubtotal: total })
+      });
+      appliedDiscount = result.discountAmount;
+      appliedCouponCode = code;
+      if (discountRow) { discountRow.classList.remove('hidden'); discountRow.classList.add('flex'); }
+      if (discountAmountEl) discountAmountEl.textContent = `- ${formatMoney(appliedDiscount)}`;
+      if (couponStatus) {
+        couponStatus.textContent = 'Coupon applied!';
+        couponStatus.className = 'mt-2 text-xs text-green-600';
+      }
+      renderCheckoutTotal();
+    } catch (err) {
+      appliedDiscount = 0;
+      appliedCouponCode = '';
+      if (discountRow) { discountRow.classList.add('hidden'); discountRow.classList.remove('flex'); }
+      if (couponStatus) {
+        couponStatus.textContent = err.body?.message || err.message || 'Invalid coupon code';
+        couponStatus.className = 'mt-2 text-xs text-red-600';
+      }
+      renderCheckoutTotal();
+    }
+  });
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -953,7 +993,7 @@ async function initCheckoutPage() {
     try {
       const checkoutResult = await apiFetch('/api/checkout', {
         method: 'POST',
-        body: JSON.stringify({ items: cartItems, shippingAddress, shippingCity, shippingPhone })
+        body: JSON.stringify({ items: cartItems, shippingAddress, shippingCity, shippingPhone, couponCode: appliedCouponCode || undefined })
       });
 
       if (status) {
