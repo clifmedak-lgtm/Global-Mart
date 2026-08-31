@@ -369,7 +369,7 @@ async function initProductPage() {
     return;
   }
   try {
-   const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
+    const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
     const imageHtml = product.image
       ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="h-96 w-full object-cover">`
       : `<div class="h-96 w-full bg-gray-100 flex items-center justify-center text-6xl text-gray-400">📦</div>`;
