@@ -102,7 +102,9 @@ model Order {
   user        User        @relation(fields: [userId], references: [id])
   itemsSubtotal Int       @default(0) // Sum of product prices x quantity, before delivery
   deliveryFee   Int       @default(0) // Flat delivery fee applied at checkout time
-  totalAmount Int         // itemsSubtotal + deliveryFee — this is what's actually charged
+  couponCode      String? // Coupon applied at checkout time, if any
+  discountAmount  Int     @default(0) // Amount deducted from itemsSubtotal because of the coupon
+  totalAmount Int         // itemsSubtotal - discountAmount + deliveryFee — this is what's actually charged
   // Order lifecycle: PENDING_PAYMENT -> PROCESSING -> SHIPPED -> DELIVERED (or CANCELLED at any point before SHIPPED)
   status      String      @default("PENDING_PAYMENT")
   // Payment lifecycle: UNPAID -> PAID / FAILED
@@ -134,4 +136,17 @@ model OrderItem {
   platformFee    Int   @default(0)  // GlobalMart's cut, in the same currency unit as price
   vendorEarning  Int   @default(0)  // What the vendor actually earns from this line
   createdAt DateTime  @default(now())
+}
+
+model Coupon {
+  id             String    @id @default(cuid())
+  code           String    @unique // stored uppercase, matched case-insensitively at checkout
+  discountType   String    // "PERCENT" or "FIXED"
+  discountValue  Int       // e.g. 10 for 10% (PERCENT) or 1000 for 1000 CFA off (FIXED)
+  minOrderAmount Int       @default(0) // itemsSubtotal must be at least this much to use the coupon
+  maxUses        Int?      // null = unlimited
+  usesCount      Int       @default(0)
+  active         Boolean   @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
 }

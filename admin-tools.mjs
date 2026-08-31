@@ -89,6 +89,52 @@ async function deleteProduct(productId) {
   console.log(`Deleted product "${product.name}" (${productId}).`);
 }
 
+async function createCoupon(code, type, value, maxUses, minOrderAmount, expiresInDays) {
+  if (!code || !type || !value) {
+    console.log('Usage: node admin-tools.mjs create-coupon <CODE> <percent|fixed> <value> [maxUses] [minOrderAmount] [expiresInDays]');
+    console.log('Examples:');
+    console.log('  node admin-tools.mjs create-coupon LAUNCH10 percent 10 100 0 30   (10% off, 100 uses max, expires in 30 days)');
+    console.log('  node admin-tools.mjs create-coupon SAVE1000 fixed 1000            (1000 CFA off, unlimited uses, never expires)');
+    return;
+  }
+  const discountType = type.toLowerCase() === 'percent' ? 'PERCENT' : type.toLowerCase() === 'fixed' ? 'FIXED' : null;
+  if (!discountType) return console.log('Type must be "percent" or "fixed"');
+
+  const coupon = await prisma.coupon.create({
+    data: {
+      code: code.trim().toUpperCase(),
+      discountType,
+      discountValue: parseInt(value),
+      maxUses: maxUses ? parseInt(maxUses) : null,
+      minOrderAmount: minOrderAmount ? parseInt(minOrderAmount) : 0,
+      expiresAt: expiresInDays ? new Date(Date.now() + parseInt(expiresInDays) * 24 * 60 * 60 * 1000) : null,
+    }
+  });
+  console.log(`Created coupon ${coupon.code}: ${discountType === 'PERCENT' ? coupon.discountValue + '%' : coupon.discountValue + ' CFA'} off${coupon.maxUses ? `, max ${coupon.maxUses} uses` : ', unlimited uses'}${coupon.expiresAt ? `, expires ${coupon.expiresAt.toLocaleDateString()}` : ', no expiry'}.`);
+}
+
+async function listCoupons() {
+  const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: 'desc' } });
+  for (const c of coupons) {
+    const status = !c.active ? 'INACTIVE' : (c.expiresAt && c.expiresAt < new Date()) ? 'EXPIRED' : (c.maxUses && c.usesCount >= c.maxUses) ? 'USED UP' : 'ACTIVE';
+    const discount = c.discountType === 'PERCENT' ? `${c.discountValue}%` : `${c.discountValue} CFA`;
+    console.log(`${c.code.padEnd(16)} ${status.padEnd(10)} ${discount.padEnd(10)} used ${c.usesCount}${c.maxUses ? `/${c.maxUses}` : ''}`);
+  }
+  console.log(`\n${coupons.length} coupon(s) total.`);
+}
+
+async function deactivateCoupon(code) {
+  if (!code) {
+    console.log('Usage: node admin-tools.mjs deactivate-coupon <CODE>');
+    return;
+  }
+  const coupon = await prisma.coupon.findUnique({ where: { code: code.trim().toUpperCase() } });
+  if (!coupon) return console.log(`No coupon found with code ${code}`);
+
+  await prisma.coupon.update({ where: { code: coupon.code }, data: { active: false } });
+  console.log(`Deactivated coupon ${coupon.code}.`);
+}
+
 async function main() {
   switch (command) {
     case 'list-users': return listUsers();
@@ -96,6 +142,9 @@ async function main() {
     case 'make-vendor': return makeVendor(args[0], args[1]);
     case 'delete-user': return deleteUser(args[0]);
     case 'delete-product': return deleteProduct(args[0]);
+    case 'create-coupon': return createCoupon(args[0], args[1], args[2], args[3], args[4], args[5]);
+    case 'list-coupons': return listCoupons();
+    case 'deactivate-coupon': return deactivateCoupon(args[0]);
     default:
       console.log('Available commands:');
       console.log('  node admin-tools.mjs list-users');
@@ -103,6 +152,9 @@ async function main() {
       console.log('  node admin-tools.mjs make-vendor <email> "<Business Name>"');
       console.log('  node admin-tools.mjs delete-user <email>');
       console.log('  node admin-tools.mjs delete-product <productId>');
+      console.log('  node admin-tools.mjs create-coupon <CODE> <percent|fixed> <value> [maxUses] [minOrderAmount] [expiresInDays]');
+      console.log('  node admin-tools.mjs list-coupons');
+      console.log('  node admin-tools.mjs deactivate-coupon <CODE>');
   }
 }
 

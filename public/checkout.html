@@ -131,9 +131,23 @@
                         <p class="text-sm text-gray-500">Loading items...</p>
                     </div>
                     <hr class="border-gray-200 mb-4">
+                    <div class="mb-4">
+                        <div class="flex gap-2">
+                            <input type="text" id="coupon-input" placeholder="Coupon code"
+                                class="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500">
+                            <button type="button" id="coupon-apply-button"
+                                class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Apply</button>
+                        </div>
+                        <p id="coupon-status" class="mt-2 text-xs"></p>
+                    </div>
+                    <hr class="border-gray-200 mb-4">
                     <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
                         <p>Delivery fee</p>
                         <p id="checkout-delivery-fee">0 CFA</p>
+                    </div>
+                    <div id="checkout-discount-row" class="hidden items-center justify-between text-sm text-green-600 mb-2">
+                        <p>Discount</p>
+                        <p id="checkout-discount">- 0 CFA</p>
                     </div>
                     <div class="flex items-center justify-between text-base font-bold text-gray-900 mb-6 pt-2 border-t border-gray-100">
                         <p>Total</p>

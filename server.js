@@ -367,8 +367,36 @@ app.get('/api/config', (req, res) => {
   res.json({ deliveryFeeXaf: DELIVERY_FEE_XAF, commissionRatePercent: COMMISSION_RATE_PERCENT });
 });
 
+// Shared validation logic — used both by the public preview endpoint and checkout itself,
+// so the discount a customer sees before paying always matches what actually gets charged.
+async function validateCoupon(code, itemsSubtotal) {
+  if (!code?.trim()) return { valid: false, message: 'Enter a coupon code' };
+
+  const coupon = await prisma.coupon.findUnique({ where: { code: code.trim().toUpperCase() } });
+  if (!coupon || !coupon.active) return { valid: false, message: 'Invalid or inactive coupon code' };
+  if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return { valid: false, message: 'This coupon has expired' };
+  if (coupon.maxUses !== null && coupon.usesCount >= coupon.maxUses) return { valid: false, message: 'This coupon has reached its usage limit' };
+  if (itemsSubtotal < coupon.minOrderAmount) {
+    return { valid: false, message: `This coupon requires a minimum order of ${coupon.minOrderAmount.toLocaleString()} CFA` };
+  }
+
+  const discountAmount = coupon.discountType === 'PERCENT'
+    ? Math.round(itemsSubtotal * (coupon.discountValue / 100))
+    : Math.min(coupon.discountValue, itemsSubtotal); // never discount more than the subtotal itself
+
+  return { valid: true, coupon, discountAmount };
+}
+
+// Public preview — lets the frontend show the discount before the customer commits to checkout.
+app.post('/api/coupons/validate', asyncHandler(async (req, res) => {
+  const { code, itemsSubtotal } = req.body;
+  const result = await validateCoupon(code, Math.max(0, parseInt(itemsSubtotal) || 0));
+  if (!result.valid) return res.status(400).json({ success: false, message: result.message });
+  res.json({ success: true, discountAmount: result.discountAmount, discountType: result.coupon.discountType, discountValue: result.coupon.discountValue });
+}));
+
 app.post('/api/checkout', requireAuth, asyncHandler(async (req, res) => {
-  const { items, shippingAddress, shippingCity, shippingPhone } = req.body;
+  const { items, shippingAddress, shippingCity, shippingPhone, couponCode } = req.body;
 
   if (!items?.length) {
     return res.status(400).json({ success: false, message: 'Cart is empty' });
@@ -430,13 +458,27 @@ app.post('/api/checkout', requireAuth, asyncHandler(async (req, res) => {
 
   const itemsSubtotal = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const deliveryFee = DELIVERY_FEE_XAF;
-  const totalAmount = itemsSubtotal + deliveryFee;
+
+  let discountAmount = 0;
+  let appliedCouponCode = null;
+  if (couponCode?.trim()) {
+    const couponResult = await validateCoupon(couponCode, itemsSubtotal);
+    if (!couponResult.valid) {
+      return res.status(400).json({ success: false, message: couponResult.message });
+    }
+    discountAmount = couponResult.discountAmount;
+    appliedCouponCode = couponResult.coupon.code;
+  }
+
+  const totalAmount = itemsSubtotal - discountAmount + deliveryFee;
 
   const order = await prisma.order.create({
     data: {
       userId: req.user.id,
       itemsSubtotal,
       deliveryFee,
+      couponCode: appliedCouponCode,
+      discountAmount,
       totalAmount,
       status: 'PENDING_PAYMENT',
       paymentStatus: 'UNPAID',
@@ -535,6 +577,11 @@ async function markOrderFromNotchpayResult(orderId, result) {
         where: { id: item.productId, stock: { gte: item.quantity } },
         data: { stock: { decrement: item.quantity } }
       }).catch(() => {});
+    }
+    // Only count the coupon as "used" once payment is actually confirmed — an abandoned
+    // unpaid checkout should never eat into a coupon's usage limit.
+    if (order.couponCode) {
+      await prisma.coupon.update({ where: { code: order.couponCode }, data: { usesCount: { increment: 1 } } }).catch(() => {});
     }
     return updated;
   }
