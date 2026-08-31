@@ -80,6 +80,18 @@ const requireVendor = (req, res, next) => {
   next();
 };
 
+// Single shared admin secret (you, the founder) — not tied to a User account. Simple and
+// appropriate while there's one operator; can evolve into real per-admin accounts later.
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
+const requireAdmin = (req, res, next) => {
+  const auth = req.headers.authorization || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  if (!ADMIN_SECRET || !token || token !== ADMIN_SECRET) {
+    return res.status(403).json({ success: false, message: 'Admin access required' });
+  }
+  next();
+};
+
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 // Products belonging to a vendor: match by the reliable vendorId first,
@@ -835,6 +847,113 @@ app.get('/api/vendor/stats', requireVendor, asyncHandler(async (req, res) => {
       };
     })
   });
+}));
+
+// ===== ADMIN =====
+
+app.post('/api/admin/login', asyncHandler(async (req, res) => {
+  const { secret } = req.body;
+  if (!ADMIN_SECRET || !secret || secret !== ADMIN_SECRET) {
+    return res.status(401).json({ success: false, message: 'Invalid admin password' });
+  }
+  res.json({ success: true, token: ADMIN_SECRET });
+}));
+
+app.get('/api/admin/stats', requireAdmin, asyncHandler(async (req, res) => {
+  const [userCount, vendorCount, productCount, orderCount] = await Promise.all([
+    prisma.user.count({ where: { role: 'customer' } }),
+    prisma.user.count({ where: { role: 'vendor' } }),
+    prisma.product.count(),
+    prisma.order.count(),
+  ]);
+
+  const paidOrders = await prisma.order.findMany({ where: { paymentStatus: 'PAID' }, include: { items: true } });
+  const totalGMV = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const platformRevenue = paidOrders.reduce((sum, o) => sum + o.items.reduce((s, i) => s + i.platformFee, 0), 0);
+
+  res.json({ userCount, vendorCount, productCount, orderCount, totalGMV, platformRevenue, paidOrderCount: paidOrders.length });
+}));
+
+app.get('/api/admin/vendors', requireAdmin, asyncHandler(async (req, res) => {
+  const vendors = await prisma.user.findMany({ where: { role: 'vendor' }, orderBy: { createdAt: 'desc' } });
+  const vendorsWithCounts = await Promise.all(vendors.map(async (v) => {
+    const productCount = await prisma.product.count({ where: { OR: [{ vendorId: v.id }, { vendor: v.fullName }] } });
+    return {
+      id: v.id, fullName: v.fullName, email: v.email, businessName: v.businessName,
+      createdAt: v.createdAt, productCount,
+    };
+  }));
+  res.json(vendorsWithCounts);
+}));
+
+app.get('/api/admin/products', requireAdmin, asyncHandler(async (req, res) => {
+  const { search } = req.query;
+  const where = {};
+  if (search) {
+    const term = String(search).trim();
+    where.OR = [{ name: { contains: term, mode: 'insensitive' } }, { vendor: { contains: term, mode: 'insensitive' } }];
+  }
+  const products = await prisma.product.findMany({ where, orderBy: { createdAt: 'desc' }, take: 200 });
+  res.json(products);
+}));
+
+app.delete('/api/admin/products/:id', requireAdmin, asyncHandler(async (req, res) => {
+  await prisma.product.delete({ where: { id: req.params.id } });
+  res.json({ success: true });
+}));
+
+app.get('/api/admin/orders', requireAdmin, asyncHandler(async (req, res) => {
+  const orders = await prisma.order.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 100,
+    include: { user: true, items: { include: { product: true } } }
+  });
+  res.json(orders.map(o => ({
+    id: o.id,
+    customerName: o.user.fullName,
+    customerEmail: o.user.email,
+    itemsSubtotal: o.itemsSubtotal,
+    deliveryFee: o.deliveryFee,
+    discountAmount: o.discountAmount,
+    couponCode: o.couponCode,
+    totalAmount: o.totalAmount,
+    status: o.status,
+    paymentStatus: o.paymentStatus,
+    paymentProvider: o.paymentProvider,
+    paymentReference: o.paymentReference,
+    createdAt: o.createdAt,
+    items: o.items.map(i => ({ productName: i.product?.name || 'Product', quantity: i.quantity, price: i.price })),
+  })));
+}));
+
+app.get('/api/admin/coupons', requireAdmin, asyncHandler(async (req, res) => {
+  const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: 'desc' } });
+  res.json(coupons);
+}));
+
+app.post('/api/admin/coupons', requireAdmin, asyncHandler(async (req, res) => {
+  const { code, discountType, discountValue, maxUses, minOrderAmount, expiresInDays } = req.body;
+  if (!code?.trim() || !['PERCENT', 'FIXED'].includes(discountType) || !discountValue) {
+    return res.status(400).json({ success: false, message: 'Missing or invalid coupon fields' });
+  }
+  const coupon = await prisma.coupon.create({
+    data: {
+      code: code.trim().toUpperCase(),
+      discountType,
+      discountValue: parseInt(discountValue),
+      maxUses: maxUses ? parseInt(maxUses) : null,
+      minOrderAmount: minOrderAmount ? parseInt(minOrderAmount) : 0,
+      expiresAt: expiresInDays ? new Date(Date.now() + parseInt(expiresInDays) * 24 * 60 * 60 * 1000) : null,
+    }
+  });
+  res.json({ success: true, coupon });
+}));
+
+app.put('/api/admin/coupons/:code/toggle', requireAdmin, asyncHandler(async (req, res) => {
+  const coupon = await prisma.coupon.findUnique({ where: { code: req.params.code.toUpperCase() } });
+  if (!coupon) return res.status(404).json({ success: false, message: 'Coupon not found' });
+  const updated = await prisma.coupon.update({ where: { code: coupon.code }, data: { active: !coupon.active } });
+  res.json({ success: true, coupon: updated });
 }));
 
 // ===== STATIC FILES =====

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | GlobalMart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <div class="md:hidden flex items-center justify-between bg-white shadow-sm px-4 py-3 sticky top-0 z-40">
+            <h1 class="text-xl font-bold text-blue-600">GlobalMart Admin</h1>
+            <button id="admin-mobile-menu-button" class="rounded-lg border border-gray-200 p-2 text-gray-600">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+        </div>
+        <div id="admin-sidebar-overlay" class="hidden md:hidden fixed inset-0 bg-black/40 z-40"></div>
+
+        <div class="flex">
+            <div id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg p-6 min-h-screen transform -translate-x-full transition-transform duration-200 md:static md:translate-x-0">
+                <h1 class="text-2xl font-bold text-blue-600 mb-8 hidden md:block">GlobalMart Admin</h1>
+                <nav class="space-y-4">
+                    <button onclick="showSection('dashboard')" class="w-full text-left px-4 py-2 rounded hover:bg-blue-50 font-medium">📊 Dashboard</button>
+                    <button onclick="showSection('vendors')" class="w-full text-left px-4 py-2 rounded hover:bg-blue-50">🏪 Vendors</button>
+                    <button onclick="showSection('products')" class="w-full text-left px-4 py-2 rounded hover:bg-blue-50">📦 Products</button>
+                    <button onclick="showSection('orders')" class="w-full text-left px-4 py-2 rounded hover:bg-blue-50">📋 Orders</button>
+                    <button onclick="showSection('coupons')" class="w-full text-left px-4 py-2 rounded hover:bg-blue-50">🏷️ Coupons</button>
+                    <button onclick="adminLogout()" class="w-full text-left px-4 py-2 rounded hover:bg-red-50 text-red-600">🚪 Logout</button>
+                </nav>
+            </div>
+
+            <div class="flex-1 p-4 sm:p-6 md:p-8 min-w-0">
+                <div id="login-section" class="max-w-md mx-auto mt-8 md:mt-20">
+                    <div class="bg-white p-6 sm:p-8 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-6">Admin Login</h2>
+                        <input type="password" id="admin-secret" placeholder="Admin password" required class="w-full px-4 py-2 border rounded mb-4">
+                        <button onclick="adminLogin()" class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700">Login</button>
+                        <p id="admin-login-status" class="text-sm text-red-600 mt-3"></p>
+                    </div>
+                </div>
+
+                <div id="dashboard" class="hidden">
+                    <div id="admin-app" class="hidden"></div>
+
+                    <div id="section-dashboard">
+                        <h2 class="text-3xl font-bold mb-8">Dashboard</h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+                            <div class="bg-white p-6 rounded-lg shadow"><p class="text-gray-600 text-sm">Customers</p><p class="text-2xl font-bold" id="stat-users">0</p></div>
+                            <div class="bg-white p-6 rounded-lg shadow"><p class="text-gray-600 text-sm">Vendors</p><p class="text-2xl font-bold" id="stat-vendors">0</p></div>
+                            <div class="bg-white p-6 rounded-lg shadow"><p class="text-gray-600 text-sm">Products</p><p class="text-2xl font-bold" id="stat-products">0</p></div>
+                            <div class="bg-white p-6 rounded-lg shadow"><p class="text-gray-600 text-sm">Orders (paid)</p><p class="text-2xl font-bold" id="stat-orders">0</p></div>
+                            <div class="bg-white p-6 rounded-lg shadow"><p class="text-gray-600 text-sm">Total sales (GMV)</p><p class="text-2xl font-bold" id="stat-gmv">0 CFA</p></div>
+                            <div class="bg-white p-6 rounded-lg shadow"><p class="text-gray-600 text-sm">Platform revenue</p><p class="text-2xl font-bold text-green-600" id="stat-revenue">0 CFA</p></div>
+                        </div>
+                    </div>
+
+                    <div id="section-vendors" class="hidden">
+                        <h2 class="text-3xl font-bold mb-8">Vendors</h2>
+                        <div id="vendors-list" class="bg-white rounded-lg shadow divide-y">Loading...</div>
+                    </div>
+
+                    <div id="section-products" class="hidden">
+                        <div class="flex justify-between items-center mb-8 gap-4">
+                            <h2 class="text-3xl font-bold">Products</h2>
+                            <input type="search" id="admin-product-search" placeholder="Search products..." class="px-4 py-2 border rounded w-64">
+                        </div>
+                        <div id="admin-products-list" class="bg-white rounded-lg shadow divide-y">Loading...</div>
+                    </div>
+
+                    <div id="section-orders" class="hidden">
+                        <h2 class="text-3xl font-bold mb-8">Orders</h2>
+                        <div id="admin-orders-list" class="space-y-3">Loading...</div>
+                    </div>
+
+                    <div id="section-coupons" class="hidden">
+                        <div class="flex justify-between items-center mb-8">
+                            <h2 class="text-3xl font-bold">Coupons</h2>
+                            <button onclick="document.getElementById('coupon-form').classList.toggle('hidden')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ New Coupon</button>
+                        </div>
+                        <div id="coupon-form" class="hidden bg-white p-6 rounded-lg shadow mb-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <input type="text" id="coupon-code" placeholder="CODE (e.g. LAUNCH10)" class="px-4 py-2 border rounded">
+                                <select id="coupon-type" class="px-4 py-2 border rounded">
+                                    <option value="PERCENT">Percent off</option>
+                                    <option value="FIXED">Fixed amount off (CFA)</option>
+                                </select>
+                                <input type="number" id="coupon-value" placeholder="Value (e.g. 10)" class="px-4 py-2 border rounded">
+                                <input type="number" id="coupon-max-uses" placeholder="Max uses (blank = unlimited)" class="px-4 py-2 border rounded">
+                                <input type="number" id="coupon-min-order" placeholder="Minimum order (CFA, optional)" class="px-4 py-2 border rounded">
+                                <input type="number" id="coupon-expires-days" placeholder="Expires in days (blank = never)" class="px-4 py-2 border rounded">
+                                <button onclick="createCoupon()" class="sm:col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Create Coupon</button>
+                                <p id="coupon-form-status" class="sm:col-span-2 text-sm"></p>
+                            </div>
+                        </div>
+                        <div id="coupons-list" class="bg-white rounded-lg shadow divide-y">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+
+        function authHeaders(json = false) {
+            const token = localStorage.getItem('admin-token');
+            const headers = {};
+            if (json) headers['Content-Type'] = 'application/json';
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            return headers;
+        }
+
+        async function readJson(res) {
+            const text = await res.text();
+            try { return text ? JSON.parse(text) : {}; } catch { return { message: text || `Server returned ${res.status}` }; }
+        }
+
+        async function adminLogin() {
+            const secret = document.getElementById('admin-secret').value;
+            const status = document.getElementById('admin-login-status');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/login`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ secret })
+                });
+                const data = await readJson(res);
+                if (!res.ok) throw new Error(data.message || 'Login failed');
+                localStorage.setItem('admin-token', data.token);
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                showSection('dashboard');
+            } catch (err) {
+                status.textContent = err.message;
+            }
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('admin-token');
+            location.reload();
+        }
+
+        function showSection(name) {
+            document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`section-${name}`)?.classList.remove('hidden');
+            closeAdminSidebar();
+            if (name === 'dashboard') loadDashboard();
+            if (name === 'vendors') loadVendors();
+            if (name === 'products') loadAdminProducts();
+            if (name === 'orders') loadAdminOrders();
+            if (name === 'coupons') loadCoupons();
+        }
+
+        function openAdminSidebar() {
+            document.getElementById('admin-sidebar')?.classList.remove('-translate-x-full');
+            document.getElementById('admin-sidebar-overlay')?.classList.remove('hidden');
+        }
+        function closeAdminSidebar() {
+            document.getElementById('admin-sidebar')?.classList.add('-translate-x-full');
+            document.getElementById('admin-sidebar-overlay')?.classList.add('hidden');
+        }
+
+        async function loadDashboard() {
+            const res = await fetch(`${API_URL}/api/admin/stats`, { headers: authHeaders() });
+            const data = await readJson(res);
+            if (!res.ok) return;
+            document.getElementById('stat-users').textContent = data.userCount;
+            document.getElementById('stat-vendors').textContent = data.vendorCount;
+            document.getElementById('stat-products').textContent = data.productCount;
+            document.getElementById('stat-orders').textContent = data.paidOrderCount;
+            document.getElementById('stat-gmv').textContent = data.totalGMV.toLocaleString() + ' CFA';
+            document.getElementById('stat-revenue').textContent = data.platformRevenue.toLocaleString() + ' CFA';
+        }
+
+        async function loadVendors() {
+            const res = await fetch(`${API_URL}/api/admin/vendors`, { headers: authHeaders() });
+            const vendors = await readJson(res);
+            document.getElementById('vendors-list').innerHTML = (vendors || []).map(v => `
+                <div class="p-4 flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">${v.businessName || v.fullName}</p>
+                        <p class="text-sm text-gray-500">${v.fullName} — ${v.email}</p>
+                    </div>
+                    <p class="text-sm text-gray-600">${v.productCount} products</p>
+                </div>
+            `).join('') || '<p class="p-4 text-gray-500">No vendors yet.</p>';
+        }
+
+        async function loadAdminProducts() {
+            const search = document.getElementById('admin-product-search')?.value || '';
+            const res = await fetch(`${API_URL}/api/admin/products${search ? `?search=${encodeURIComponent(search)}` : ''}`, { headers: authHeaders() });
+            const products = await readJson(res);
+            document.getElementById('admin-products-list').innerHTML = (products || []).map(p => `
+                <div class="p-4 flex justify-between items-center gap-4">
+                    <div class="min-w-0">
+                        <p class="font-semibold truncate">${p.name}</p>
+                        <p class="text-sm text-gray-500">${p.vendor} — ${Number(p.price).toLocaleString()} CFA — stock ${p.stock}</p>
+                    </div>
+                    <button onclick="deleteAdminProduct('${p.id}')" class="text-red-600 hover:underline text-sm flex-shrink-0">Delete</button>
+                </div>
+            `).join('') || '<p class="p-4 text-gray-500">No products found.</p>';
+        }
+
+        async function deleteAdminProduct(id) {
+            if (!confirm('Delete this product? This cannot be undone.')) return;
+            const res = await fetch(`${API_URL}/api/admin/products/${id}`, { method: 'DELETE', headers: authHeaders() });
+            const data = await readJson(res);
+            if (res.ok) loadAdminProducts(); else alert(data.message || 'Failed to delete');
+        }
+
+        async function loadAdminOrders() {
+            const res = await fetch(`${API_URL}/api/admin/orders`, { headers: authHeaders() });
+            const orders = await readJson(res);
+            document.getElementById('admin-orders-list').innerHTML = (orders || []).map(o => `
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="flex flex-wrap justify-between gap-2">
+                        <div>
+                            <p class="font-semibold">${o.customerName} <span class="text-gray-400 font-normal">(${o.customerEmail})</span></p>
+                            <p class="text-xs text-gray-500">${new Date(o.createdAt).toLocaleString()}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs px-2 py-0.5 rounded-full inline-block ${o.paymentStatus === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${o.status}</p>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-600 mt-2">
+                        ${o.items.map(i => `${i.productName} x${i.quantity}`).join(', ')}
+                    </div>
+                    <div class="text-sm mt-2 flex flex-wrap gap-4">
+                        <span>Subtotal: ${o.itemsSubtotal.toLocaleString()} CFA</span>
+                        <span>Delivery: ${o.deliveryFee.toLocaleString()} CFA</span>
+                        ${o.couponCode ? `<span class="text-green-600">Coupon ${o.couponCode}: -${o.discountAmount.toLocaleString()} CFA</span>` : ''}
+                        <span class="font-bold">Total: ${o.totalAmount.toLocaleString()} CFA</span>
+                    </div>
+                    ${o.paymentReference ? `<p class="text-xs text-gray-400 mt-1">Ref: ${o.paymentReference} (${o.paymentProvider || 'n/a'})</p>` : ''}
+                </div>
+            `).join('') || '<p class="text-gray-500">No orders yet.</p>';
+        }
+
+        async function loadCoupons() {
+            const res = await fetch(`${API_URL}/api/admin/coupons`, { headers: authHeaders() });
+            const coupons = await readJson(res);
+            document.getElementById('coupons-list').innerHTML = (coupons || []).map(c => {
+                const status = !c.active ? 'INACTIVE' : (c.expiresAt && new Date(c.expiresAt) < new Date()) ? 'EXPIRED' : (c.maxUses && c.usesCount >= c.maxUses) ? 'USED UP' : 'ACTIVE';
+                const statusColor = status === 'ACTIVE' ? 'text-green-600' : 'text-gray-500';
+                const discount = c.discountType === 'PERCENT' ? `${c.discountValue}%` : `${c.discountValue} CFA`;
+                return `
+                <div class="p-4 flex justify-between items-center gap-4">
+                    <div>
+                        <p class="font-semibold">${c.code} <span class="${statusColor} text-xs font-normal">${status}</span></p>
+                        <p class="text-sm text-gray-500">${discount} off — used ${c.usesCount}${c.maxUses ? `/${c.maxUses}` : ''} — min order ${c.minOrderAmount.toLocaleString()} CFA${c.expiresAt ? ` — expires ${new Date(c.expiresAt).toLocaleDateString()}` : ''}</p>
+                    </div>
+                    <button onclick="toggleCoupon('${c.code}')" class="text-sm text-blue-600 hover:underline flex-shrink-0">${c.active ? 'Deactivate' : 'Activate'}</button>
+                </div>
+            `}).join('') || '<p class="p-4 text-gray-500">No coupons yet.</p>';
+        }
+
+        async function createCoupon() {
+            const status = document.getElementById('coupon-form-status');
+            const body = {
+                code: document.getElementById('coupon-code').value,
+                discountType: document.getElementById('coupon-type').value,
+                discountValue: document.getElementById('coupon-value').value,
+                maxUses: document.getElementById('coupon-max-uses').value || undefined,
+                minOrderAmount: document.getElementById('coupon-min-order').value || undefined,
+                expiresInDays: document.getElementById('coupon-expires-days').value || undefined,
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/coupons`, { method: 'POST', headers: authHeaders(true), body: JSON.stringify(body) });
+                const data = await readJson(res);
+                if (!res.ok) throw new Error(data.message || 'Failed to create coupon');
+                status.textContent = 'Coupon created!';
+                status.className = 'sm:col-span-2 text-sm text-green-600';
+                loadCoupons();
+            } catch (err) {
+                status.textContent = err.message;
+                status.className = 'sm:col-span-2 text-sm text-red-600';
+            }
+        }
+
+        async function toggleCoupon(code) {
+            const res = await fetch(`${API_URL}/api/admin/coupons/${code}/toggle`, { method: 'PUT', headers: authHeaders() });
+            if (res.ok) loadCoupons();
+        }
+
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('admin-token')) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                showSection('dashboard');
+            }
+            document.getElementById('admin-mobile-menu-button')?.addEventListener('click', openAdminSidebar);
+            document.getElementById('admin-sidebar-overlay')?.addEventListener('click', closeAdminSidebar);
+            let debounce = null;
+            document.getElementById('admin-product-search')?.addEventListener('input', () => {
+                clearTimeout(debounce);
+                debounce = setTimeout(loadAdminProducts, 250);
+            });
+        });
+    </script>
+</body>
+
+</html>
