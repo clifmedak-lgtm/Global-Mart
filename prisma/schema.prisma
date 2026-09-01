@@ -25,6 +25,20 @@ model User {
   passwordResetTokens PasswordResetToken[]
   reviews   Review[]
   wishlistItems WishlistItem[]
+  payouts   Payout[]
+}
+
+model Payout {
+  id        String   @id @default(cuid())
+  vendorId  String
+  vendor    User     @relation(fields: [vendorId], references: [id])
+  amount    Int      // CFA amount actually sent to the vendor
+  method    String?  // e.g. "MTN Mobile Money", "Orange Money", "Bank transfer"
+  reference String?  // free-text: transaction id, phone number used, etc.
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([vendorId])
 }
 
 model PasswordResetToken {

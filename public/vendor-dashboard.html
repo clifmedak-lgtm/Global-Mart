@@ -99,6 +99,20 @@
                             </div>
                         </div>
 
+                        <div class="bg-white p-6 rounded-lg shadow mb-8">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Available balance</p>
+                                    <p class="text-3xl font-bold text-green-600" id="stat-balance">0 CFA</p>
+                                    <p class="text-xs text-gray-400 mt-1">Total earned minus what's already been paid out to you</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <h4 class="text-sm font-semibold text-gray-700 mb-2">Payout history</h4>
+                                <div id="payout-history-list" class="space-y-2 text-sm">No payouts yet.</div>
+                            </div>
+                        </div>
+
                         <!-- Recent Orders -->
                         <div class="bg-white p-6 rounded-lg shadow">
                             <h3 class="text-xl font-bold mb-4">Recent Orders</h3>
@@ -304,6 +318,15 @@
                 document.getElementById('stat-orders').textContent = data.orderCount || 0;
                 document.getElementById('stat-revenue').textContent = (data.totalRevenue || 0).toLocaleString() + ' CFA';
                 document.getElementById('stat-commission-note').textContent = data.commissionRatePercent !== undefined ? `(after ${data.commissionRatePercent}% platform fee)` : '';
+                document.getElementById('stat-balance').textContent = (data.availableBalance || 0).toLocaleString() + ' CFA';
+
+                const payoutHtml = (data.payouts || []).map(p => `
+                    <div class="flex justify-between border-b border-gray-100 pb-2">
+                        <span>${new Date(p.createdAt).toLocaleDateString()} — ${p.method || 'Payment'}${p.reference ? ` (${escapeHtml(p.reference)})` : ''}</span>
+                        <span class="font-semibold">${Number(p.amount).toLocaleString()} CFA</span>
+                    </div>
+                `).join('');
+                document.getElementById('payout-history-list').innerHTML = payoutHtml || 'No payouts yet.';
 
                 const ordersList = (data.orders || []).map(o => `
                     <div class="p-4 bg-gray-50 rounded">
@@ -337,13 +360,15 @@
                 const products = await readJson(res);
                 if (!res.ok) throw new Error(products.message || `Request failed (${res.status})`);
                 const html = (products || []).map(p => `
-    <div class="bg-white p-4 rounded-lg shadow" data-id="${p.id}" data-name="${escapeHtml(p.name)}" data-description="${escapeHtml(p.description)}" data-price="${p.price}" data-category="${p.category}" data-image="${escapeHtml(p.image)}" data-stock="${p.stock ?? 999}">
-        <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="w-full h-40 object-cover rounded mb-2" onerror="this.style.display='none'">
+    <div class="product-card bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition cursor-pointer" data-id="${p.id}" data-name="${escapeHtml(p.name)}" data-description="${escapeHtml(p.description)}" data-price="${p.price}" data-category="${p.category}" data-image="${escapeHtml(p.image)}" data-stock="${p.stock ?? 999}" onclick="showProductDetail('${p.id}')">
+        <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="w-full h-40 object-cover rounded-xl mb-2" onerror="this.style.display='none'">
         <h4 class="font-bold">${escapeHtml(p.name)}</h4>
         <p class="text-sm text-gray-600">${Number(p.price || 0).toLocaleString()} CFA</p>
         <p class="text-xs ${p.stock > 0 ? 'text-gray-500' : 'text-red-600 font-semibold'} mt-1">${p.stock > 0 ? `${p.stock} in stock` : 'Out of stock'}</p>
-        <button onclick="editProduct('${p.id}')" class="mt-2 w-full bg-blue-600 text-white py-1 rounded text-sm">Edit</button>
-        <button onclick="deleteProduct('${p.id}')" class="mt-1 w-full bg-red-600 text-white py-1 rounded text-sm">Delete</button>
+        <div class="flex gap-2 mt-3" onclick="event.stopPropagation()">
+            <button onclick="editProduct('${p.id}')" class="flex-1 bg-blue-600 text-white py-1.5 rounded-lg text-sm hover:bg-blue-700">Edit</button>
+            <button onclick="deleteProduct('${p.id}')" class="flex-1 bg-red-50 text-red-600 py-1.5 rounded-lg text-sm hover:bg-red-100">Delete</button>
+        </div>
     </div>
 `).join('');
                 document.getElementById('products-list').innerHTML = html || '<p class="col-span-full text-gray-500">No products match your search.</p>';
@@ -479,6 +504,25 @@
                 alert('Error: ' + err.message);
             }
         }
+        function showProductDetail(id) {
+            const card = document.querySelector(`[data-id="${id}"]`);
+            if (!card) return;
+            document.getElementById('detail-modal-image').src = card.dataset.image || '';
+            document.getElementById('detail-modal-image').onerror = function () { this.style.display = 'none'; };
+            document.getElementById('detail-modal-name').textContent = card.dataset.name;
+            document.getElementById('detail-modal-category').textContent = card.dataset.category;
+            document.getElementById('detail-modal-price').textContent = Number(card.dataset.price || 0).toLocaleString() + ' CFA';
+            document.getElementById('detail-modal-stock').textContent = card.dataset.stock > 0 ? `${card.dataset.stock} in stock` : 'Out of stock';
+            document.getElementById('detail-modal-description').textContent = card.dataset.description || 'No description provided.';
+            document.getElementById('detail-modal-edit').onclick = () => { closeProductDetail(); editProduct(id); };
+            document.getElementById('detail-modal-delete').onclick = () => { closeProductDetail(); deleteProduct(id); };
+            document.getElementById('product-detail-modal').classList.remove('hidden');
+        }
+
+        function closeProductDetail() {
+            document.getElementById('product-detail-modal').classList.add('hidden');
+        }
+
         function editProduct(id) {
             const product = document.querySelector(`[data-id="${id}"]`);
             if (!product) return;
@@ -544,6 +588,28 @@
             document.getElementById('vendor-sidebar-overlay')?.addEventListener('click', closeVendorSidebar);
         });
     </script>
+
+    <!-- Product detail modal -->
+    <div id="product-detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" onclick="closeProductDetail()"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <button onclick="closeProductDetail()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 text-xl">✕</button>
+            <img id="detail-modal-image" src="" alt="" class="w-full h-56 object-cover rounded-t-2xl">
+            <div class="p-6">
+                <p id="detail-modal-category" class="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-1"></p>
+                <h3 id="detail-modal-name" class="text-xl font-bold text-gray-900 mb-2"></h3>
+                <div class="flex items-center gap-3 mb-4">
+                    <span id="detail-modal-price" class="text-lg font-bold text-gray-900"></span>
+                    <span id="detail-modal-stock" class="text-sm text-gray-500"></span>
+                </div>
+                <p id="detail-modal-description" class="text-sm text-gray-600 leading-relaxed"></p>
+                <div class="flex gap-3 mt-6">
+                    <button id="detail-modal-edit" class="flex-1 bg-blue-600 text-white py-2 rounded-xl font-medium hover:bg-blue-700">Edit product</button>
+                    <button id="detail-modal-delete" class="flex-1 bg-red-50 text-red-600 py-2 rounded-xl font-medium hover:bg-red-100">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

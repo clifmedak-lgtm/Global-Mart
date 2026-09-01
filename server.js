@@ -100,6 +100,23 @@ function vendorProductsWhere(user) {
   return { OR: [{ vendorId: user.id }, { vendor: user.fullName }] };
 }
 
+// Total earned (net of commission, PAID orders only) minus what's already been paid out.
+async function getVendorBalance(vendorUser) {
+  const vendorWhere = vendorProductsWhere(vendorUser);
+  const isMine = (item) => item.product?.vendorId === vendorUser.id || item.product?.vendor === vendorUser.fullName;
+
+  const paidOrders = await prisma.order.findMany({
+    where: { paymentStatus: 'PAID', items: { some: { product: vendorWhere } } },
+    include: { items: { include: { product: true } } }
+  });
+  const totalEarned = paidOrders.reduce((sum, o) => sum + o.items.filter(isMine).reduce((s, i) => s + i.vendorEarning, 0), 0);
+
+  const payouts = await prisma.payout.findMany({ where: { vendorId: vendorUser.id } });
+  const totalPaidOut = payouts.reduce((sum, p) => sum + p.amount, 0);
+
+  return { totalEarned, totalPaidOut, balance: totalEarned - totalPaidOut };
+}
+
 // ===== CUSTOMER ENDPOINTS =====
 
 app.get('/api/products', asyncHandler(async (req, res) => {
@@ -817,10 +834,16 @@ app.get('/api/vendor/stats', requireVendor, asyncHandler(async (req, res) => {
       return sum + vendorAmount;
     }, 0);
 
+  const payouts = await prisma.payout.findMany({ where: { vendorId: req.user.id }, orderBy: { createdAt: 'desc' } });
+  const totalPaidOut = payouts.reduce((sum, p) => sum + p.amount, 0);
+
   res.json({
     productCount: products.length,
     orderCount: orders.length,
     totalRevenue,
+    totalPaidOut,
+    availableBalance: totalRevenue - totalPaidOut,
+    payouts,
     commissionRatePercent: COMMISSION_RATE_PERCENT,
     products,
     orders: orders.map(o => {
@@ -874,16 +897,67 @@ app.get('/api/admin/stats', requireAdmin, asyncHandler(async (req, res) => {
   res.json({ userCount, vendorCount, productCount, orderCount, totalGMV, platformRevenue, paidOrderCount: paidOrders.length });
 }));
 
+app.get('/api/admin/customers', requireAdmin, asyncHandler(async (req, res) => {
+  const { search } = req.query;
+  const where = { role: 'customer' };
+  if (search) {
+    const term = String(search).trim();
+    where.OR = [{ fullName: { contains: term, mode: 'insensitive' } }, { email: { contains: term, mode: 'insensitive' } }];
+  }
+  const customers = await prisma.user.findMany({ where, orderBy: { createdAt: 'desc' }, take: 200 });
+  const withStats = await Promise.all(customers.map(async (c) => {
+    const orders = await prisma.order.findMany({ where: { userId: c.id } });
+    const paidOrders = orders.filter(o => o.paymentStatus === 'PAID');
+    return {
+      id: c.id, fullName: c.fullName, email: c.email, createdAt: c.createdAt,
+      orderCount: orders.length,
+      totalSpent: paidOrders.reduce((sum, o) => sum + o.totalAmount, 0),
+    };
+  }));
+  res.json(withStats);
+}));
+
 app.get('/api/admin/vendors', requireAdmin, asyncHandler(async (req, res) => {
   const vendors = await prisma.user.findMany({ where: { role: 'vendor' }, orderBy: { createdAt: 'desc' } });
   const vendorsWithCounts = await Promise.all(vendors.map(async (v) => {
     const productCount = await prisma.product.count({ where: { OR: [{ vendorId: v.id }, { vendor: v.fullName }] } });
+    const { totalEarned, totalPaidOut, balance } = await getVendorBalance(v);
     return {
       id: v.id, fullName: v.fullName, email: v.email, businessName: v.businessName,
-      createdAt: v.createdAt, productCount,
+      createdAt: v.createdAt, productCount, totalEarned, totalPaidOut, balance,
     };
   }));
   res.json(vendorsWithCounts);
+}));
+
+app.get('/api/admin/vendors/:id/payouts', requireAdmin, asyncHandler(async (req, res) => {
+  const vendor = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!vendor || vendor.role !== 'vendor') return res.status(404).json({ success: false, message: 'Vendor not found' });
+
+  const payouts = await prisma.payout.findMany({ where: { vendorId: vendor.id }, orderBy: { createdAt: 'desc' } });
+  const balance = await getVendorBalance(vendor);
+  res.json({ vendor: { id: vendor.id, fullName: vendor.fullName, businessName: vendor.businessName }, ...balance, payouts });
+}));
+
+app.post('/api/admin/vendors/:id/payouts', requireAdmin, asyncHandler(async (req, res) => {
+  const { amount, method, reference, notes } = req.body;
+  const amountNum = parseInt(amount);
+  if (!amountNum || amountNum <= 0) {
+    return res.status(400).json({ success: false, message: 'Amount must be a positive number' });
+  }
+
+  const vendor = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!vendor || vendor.role !== 'vendor') return res.status(404).json({ success: false, message: 'Vendor not found' });
+
+  const { balance } = await getVendorBalance(vendor);
+  if (amountNum > balance) {
+    return res.status(400).json({ success: false, message: `Amount exceeds vendor's current balance (${balance.toLocaleString()} CFA owed)` });
+  }
+
+  const payout = await prisma.payout.create({
+    data: { vendorId: vendor.id, amount: amountNum, method: method?.trim() || null, reference: reference?.trim() || null, notes: notes?.trim() || null }
+  });
+  res.json({ success: true, payout });
 }));
 
 app.get('/api/admin/products', requireAdmin, asyncHandler(async (req, res) => {

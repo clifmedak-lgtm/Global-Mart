@@ -6,37 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin | GlobalMart</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .admin-nav-btn { color: #475569; }
+        .admin-nav-btn:hover { background: #f1f5f9; }
+        .admin-nav-btn.active { background: linear-gradient(90deg, #eff6ff, #eef2ff); color: #2563eb; font-weight: 600; }
+        .stat-card { transition: transform 150ms ease, box-shadow 150ms ease; cursor: pointer; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.12); }
+    </style>
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-slate-50">
     <div class="min-h-screen">
-        <div class="md:hidden flex items-center justify-between bg-white shadow-sm px-4 py-3 sticky top-0 z-40">
-            <h1 class="text-xl font-bold text-blue-600">GlobalMart Admin</h1>
-            <button id="admin-mobile-menu-button" class="rounded-lg border border-gray-200 p-2 text-gray-600">
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+        <div class="md:hidden flex items-center justify-between bg-white/80 backdrop-blur shadow-sm px-4 py-3 sticky top-0 z-40 border-b border-slate-100">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">GlobalMart Admin</h1>
+            <button id="admin-mobile-menu-button" class="rounded-lg border border-slate-200 p-2 text-slate-600">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
         </div>
         <div id="admin-sidebar-overlay" class="hidden md:hidden fixed inset-0 bg-black/40 z-40"></div>
 
         <div class="flex">
-            <div id="admin-sidebar"
-                class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg p-6 min-h-screen transform -translate-x-full transition-transform duration-200 md:static md:translate-x-0">
-                <h1 class="text-2xl font-bold text-blue-600 mb-8 hidden md:block">GlobalMart Admin</h1>
-                <nav class="space-y-4">
-                    <button onclick="showSection('dashboard')"
-                        class="w-full text-left px-4 py-2 rounded hover:bg-blue-50 font-medium">📊 Dashboard</button>
-                    <button onclick="showSection('vendors')"
-                        class="w-full text-left px-4 py-2 rounded hover:bg-blue-50">🏪 Vendors</button>
-                    <button onclick="showSection('products')"
-                        class="w-full text-left px-4 py-2 rounded hover:bg-blue-50">📦 Products</button>
-                    <button onclick="showSection('orders')"
-                        class="w-full text-left px-4 py-2 rounded hover:bg-blue-50">📋 Orders</button>
-                    <button onclick="showSection('coupons')"
-                        class="w-full text-left px-4 py-2 rounded hover:bg-blue-50">🏷️ Coupons</button>
-                    <button onclick="adminLogout()"
-                        class="w-full text-left px-4 py-2 rounded hover:bg-red-50 text-red-600">🚪 Logout</button>
+            <div id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl p-6 min-h-screen transform -translate-x-full transition-transform duration-200 md:static md:translate-x-0 md:shadow-sm md:border-r md:border-slate-100">
+                <h1 class="text-2xl font-bold mb-10 hidden md:block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">GlobalMart Admin</h1>
+                <nav class="space-y-1">
+                    <button data-nav="dashboard" onclick="showSection('dashboard')" class="admin-nav-btn w-full text-left px-4 py-2.5 rounded-xl font-medium flex items-center gap-3 transition">📊 <span>Dashboard</span></button>
+                    <button data-nav="customers" onclick="showSection('customers')" class="admin-nav-btn w-full text-left px-4 py-2.5 rounded-xl flex items-center gap-3 transition">👥 <span>Customers</span></button>
+                    <button data-nav="vendors" onclick="showSection('vendors')" class="admin-nav-btn w-full text-left px-4 py-2.5 rounded-xl flex items-center gap-3 transition">🏪 <span>Vendors</span></button>
+                    <button data-nav="products" onclick="showSection('products')" class="admin-nav-btn w-full text-left px-4 py-2.5 rounded-xl flex items-center gap-3 transition">📦 <span>Products</span></button>
+                    <button data-nav="orders" onclick="showSection('orders')" class="admin-nav-btn w-full text-left px-4 py-2.5 rounded-xl flex items-center gap-3 transition">📋 <span>Orders</span></button>
+                    <button data-nav="coupons" onclick="showSection('coupons')" class="admin-nav-btn w-full text-left px-4 py-2.5 rounded-xl flex items-center gap-3 transition">🏷️ <span>Coupons</span></button>
+                    <div class="pt-4 mt-4 border-t border-slate-100">
+                        <button onclick="adminLogout()" class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-red-50 text-red-600 flex items-center gap-3 transition">🚪 <span>Logout</span></button>
+                    </div>
                 </nav>
             </div>
 
@@ -44,10 +45,8 @@
                 <div id="login-section" class="max-w-md mx-auto mt-8 md:mt-20">
                     <div class="bg-white p-6 sm:p-8 rounded-lg shadow-lg">
                         <h2 class="text-2xl font-bold mb-6">Admin Login</h2>
-                        <input type="password" id="admin-secret" placeholder="Admin password" required
-                            class="w-full px-4 py-2 border rounded mb-4">
-                        <button onclick="adminLogin()"
-                            class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700">Login</button>
+                        <input type="password" id="admin-secret" placeholder="Admin password" required class="w-full px-4 py-2 border rounded mb-4">
+                        <button onclick="adminLogin()" class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700">Login</button>
                         <p id="admin-login-status" class="text-sm text-red-600 mt-3"></p>
                     </div>
                 </div>
@@ -56,33 +55,24 @@
                     <div id="admin-app" class="hidden"></div>
 
                     <div id="section-dashboard">
-                        <h2 class="text-3xl font-bold mb-8">Dashboard</h2>
+                        <h2 class="text-3xl font-bold mb-1 text-slate-900">Dashboard</h2>
+                        <p class="text-slate-500 mb-8">Tap any card to see the details.</p>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
-                            <div class="bg-white p-6 rounded-lg shadow">
-                                <p class="text-gray-600 text-sm">Customers</p>
-                                <p class="text-2xl font-bold" id="stat-users">0</p>
-                            </div>
-                            <div class="bg-white p-6 rounded-lg shadow">
-                                <p class="text-gray-600 text-sm">Vendors</p>
-                                <p class="text-2xl font-bold" id="stat-vendors">0</p>
-                            </div>
-                            <div class="bg-white p-6 rounded-lg shadow">
-                                <p class="text-gray-600 text-sm">Products</p>
-                                <p class="text-2xl font-bold" id="stat-products">0</p>
-                            </div>
-                            <div class="bg-white p-6 rounded-lg shadow">
-                                <p class="text-gray-600 text-sm">Orders (paid)</p>
-                                <p class="text-2xl font-bold" id="stat-orders">0</p>
-                            </div>
-                            <div class="bg-white p-6 rounded-lg shadow">
-                                <p class="text-gray-600 text-sm">Total sales (GMV)</p>
-                                <p class="text-2xl font-bold" id="stat-gmv">0 CFA</p>
-                            </div>
-                            <div class="bg-white p-6 rounded-lg shadow">
-                                <p class="text-gray-600 text-sm">Platform revenue</p>
-                                <p class="text-2xl font-bold text-green-600" id="stat-revenue">0 CFA</p>
-                            </div>
+                            <div onclick="showSection('customers')" class="stat-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><p class="text-slate-500 text-sm">Customers</p><p class="text-2xl font-bold text-slate-900" id="stat-users">0</p></div>
+                            <div onclick="showSection('vendors')" class="stat-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><p class="text-slate-500 text-sm">Vendors</p><p class="text-2xl font-bold text-slate-900" id="stat-vendors">0</p></div>
+                            <div onclick="showSection('products')" class="stat-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><p class="text-slate-500 text-sm">Products</p><p class="text-2xl font-bold text-slate-900" id="stat-products">0</p></div>
+                            <div onclick="showSection('orders')" class="stat-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><p class="text-slate-500 text-sm">Orders (paid)</p><p class="text-2xl font-bold text-slate-900" id="stat-orders">0</p></div>
+                            <div onclick="showSection('orders')" class="stat-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><p class="text-slate-500 text-sm">Total sales (GMV)</p><p class="text-2xl font-bold text-slate-900" id="stat-gmv">0 CFA</p></div>
+                            <div onclick="showSection('coupons')" class="stat-card bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl shadow-sm border border-green-100"><p class="text-slate-500 text-sm">Platform revenue</p><p class="text-2xl font-bold text-green-600" id="stat-revenue">0 CFA</p></div>
                         </div>
+                    </div>
+
+                    <div id="section-customers" class="hidden">
+                        <div class="flex justify-between items-center mb-8 gap-4">
+                            <h2 class="text-3xl font-bold text-slate-900">Customers</h2>
+                            <input type="search" id="admin-customer-search" placeholder="Search customers..." class="px-4 py-2 border border-slate-200 rounded-xl w-64 outline-none focus:border-blue-400">
+                        </div>
+                        <div id="admin-customers-list" class="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100">Loading...</div>
                     </div>
 
                     <div id="section-vendors" class="hidden">
@@ -93,8 +83,7 @@
                     <div id="section-products" class="hidden">
                         <div class="flex justify-between items-center mb-8 gap-4">
                             <h2 class="text-3xl font-bold">Products</h2>
-                            <input type="search" id="admin-product-search" placeholder="Search products..."
-                                class="px-4 py-2 border rounded w-64">
+                            <input type="search" id="admin-product-search" placeholder="Search products..." class="px-4 py-2 border rounded w-64">
                         </div>
                         <div id="admin-products-list" class="bg-white rounded-lg shadow divide-y">Loading...</div>
                     </div>
@@ -107,30 +96,20 @@
                     <div id="section-coupons" class="hidden">
                         <div class="flex justify-between items-center mb-8">
                             <h2 class="text-3xl font-bold">Coupons</h2>
-                            <button onclick="document.getElementById('coupon-form').classList.toggle('hidden')"
-                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ New Coupon</button>
+                            <button onclick="document.getElementById('coupon-form').classList.toggle('hidden')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ New Coupon</button>
                         </div>
-                        <div id="coupon-form" class="hidden bg-white p-6 rounded-lg shadow mb-6">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <input type="text" id="coupon-code" placeholder="CODE (e.g. LAUNCH10)"
-                                    class="px-4 py-2 border rounded">
-                                <select id="coupon-type" class="px-4 py-2 border rounded">
-                                    <option value="PERCENT">Percent off</option>
-                                    <option value="FIXED">Fixed amount off (CFA)</option>
-                                </select>
-                                <input type="number" id="coupon-value" placeholder="Value (e.g. 10)"
-                                    class="px-4 py-2 border rounded">
-                                <input type="number" id="coupon-max-uses" placeholder="Max uses (blank = unlimited)"
-                                    class="px-4 py-2 border rounded">
-                                <input type="number" id="coupon-min-order" placeholder="Minimum order (CFA, optional)"
-                                    class="px-4 py-2 border rounded">
-                                <input type="number" id="coupon-expires-days"
-                                    placeholder="Expires in days (blank = never)" class="px-4 py-2 border rounded">
-                                <button onclick="createCoupon()"
-                                    class="sm:col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Create
-                                    Coupon</button>
-                                <p id="coupon-form-status" class="sm:col-span-2 text-sm"></p>
-                            </div>
+                        <div id="coupon-form" class="hidden bg-white p-6 rounded-lg shadow mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <input type="text" id="coupon-code" placeholder="CODE (e.g. LAUNCH10)" class="px-4 py-2 border rounded">
+                            <select id="coupon-type" class="px-4 py-2 border rounded">
+                                <option value="PERCENT">Percent off</option>
+                                <option value="FIXED">Fixed amount off (CFA)</option>
+                            </select>
+                            <input type="number" id="coupon-value" placeholder="Value (e.g. 10)" class="px-4 py-2 border rounded">
+                            <input type="number" id="coupon-max-uses" placeholder="Max uses (blank = unlimited)" class="px-4 py-2 border rounded">
+                            <input type="number" id="coupon-min-order" placeholder="Minimum order (CFA, optional)" class="px-4 py-2 border rounded">
+                            <input type="number" id="coupon-expires-days" placeholder="Expires in days (blank = never)" class="px-4 py-2 border rounded">
+                            <button onclick="createCoupon()" class="sm:col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Create Coupon</button>
+                            <p id="coupon-form-status" class="sm:col-span-2 text-sm"></p>
                         </div>
                         <div id="coupons-list" class="bg-white rounded-lg shadow divide-y">Loading...</div>
                     </div>
@@ -181,12 +160,32 @@
         function showSection(name) {
             document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
             document.getElementById(`section-${name}`)?.classList.remove('hidden');
+            document.querySelectorAll('.admin-nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === name));
             closeAdminSidebar();
             if (name === 'dashboard') loadDashboard();
+            if (name === 'customers') loadCustomers();
             if (name === 'vendors') loadVendors();
             if (name === 'products') loadAdminProducts();
             if (name === 'orders') loadAdminOrders();
             if (name === 'coupons') loadCoupons();
+        }
+
+        async function loadCustomers() {
+            const search = document.getElementById('admin-customer-search')?.value || '';
+            const res = await fetch(`${API_URL}/api/admin/customers${search ? `?search=${encodeURIComponent(search)}` : ''}`, { headers: authHeaders() });
+            const customers = await readJson(res);
+            document.getElementById('admin-customers-list').innerHTML = (customers || []).map(c => `
+                <div class="p-4 flex justify-between items-center gap-4">
+                    <div class="min-w-0">
+                        <p class="font-semibold truncate">${c.fullName}</p>
+                        <p class="text-sm text-slate-500 truncate">${c.email} — joined ${new Date(c.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <p class="font-semibold text-slate-900">${c.totalSpent.toLocaleString()} CFA</p>
+                        <p class="text-xs text-slate-500">${c.orderCount} order${c.orderCount === 1 ? '' : 's'}</p>
+                    </div>
+                </div>
+            `).join('') || '<p class="p-4 text-slate-500">No customers yet.</p>';
         }
 
         function openAdminSidebar() {
@@ -214,14 +213,54 @@
             const res = await fetch(`${API_URL}/api/admin/vendors`, { headers: authHeaders() });
             const vendors = await readJson(res);
             document.getElementById('vendors-list').innerHTML = (vendors || []).map(v => `
-                <div class="p-4 flex justify-between items-center">
-                    <div>
-                        <p class="font-semibold">${v.businessName || v.fullName}</p>
-                        <p class="text-sm text-gray-500">${v.fullName} — ${v.email}</p>
+                <div class="p-4">
+                    <div class="flex flex-wrap justify-between items-center gap-3">
+                        <div>
+                            <p class="font-semibold">${v.businessName || v.fullName}</p>
+                            <p class="text-sm text-gray-500">${v.fullName} — ${v.email}</p>
+                            <p class="text-sm text-gray-600 mt-1">${v.productCount} products — earned ${v.totalEarned.toLocaleString()} CFA — paid out ${v.totalPaidOut.toLocaleString()} CFA</p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <p class="text-lg font-bold ${v.balance > 0 ? 'text-orange-600' : 'text-gray-400'}">${v.balance.toLocaleString()} CFA owed</p>
+                            <button onclick="openPayoutForm('${v.id}', '${(v.businessName || v.fullName).replace(/'/g, "\\'")}', ${v.balance})" class="text-sm text-blue-600 hover:underline mt-1">Record payout</button>
+                        </div>
                     </div>
-                    <p class="text-sm text-gray-600">${v.productCount} products</p>
+                    <div id="payout-form-${v.id}" class="hidden mt-3 bg-gray-50 rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="number" id="payout-amount-${v.id}" placeholder="Amount (CFA)" class="px-3 py-2 border rounded text-sm">
+                        <input type="text" id="payout-method-${v.id}" placeholder="Method (e.g. MTN MoMo)" class="px-3 py-2 border rounded text-sm">
+                        <input type="text" id="payout-reference-${v.id}" placeholder="Reference / phone number" class="px-3 py-2 border rounded text-sm sm:col-span-2">
+                        <button onclick="recordPayout('${v.id}')" class="sm:col-span-2 bg-blue-600 text-white py-2 rounded text-sm hover:bg-blue-700">Confirm payout sent</button>
+                        <p id="payout-status-${v.id}" class="sm:col-span-2 text-sm"></p>
+                    </div>
                 </div>
             `).join('') || '<p class="p-4 text-gray-500">No vendors yet.</p>';
+        }
+
+        function openPayoutForm(vendorId, name, balance) {
+            const form = document.getElementById(`payout-form-${vendorId}`);
+            form.classList.toggle('hidden');
+            const amountInput = document.getElementById(`payout-amount-${vendorId}`);
+            if (!amountInput.value) amountInput.placeholder = `Amount (CFA) — up to ${balance.toLocaleString()} owed`;
+        }
+
+        async function recordPayout(vendorId) {
+            const status = document.getElementById(`payout-status-${vendorId}`);
+            const body = {
+                amount: document.getElementById(`payout-amount-${vendorId}`).value,
+                method: document.getElementById(`payout-method-${vendorId}`).value,
+                reference: document.getElementById(`payout-reference-${vendorId}`).value,
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/admin/vendors/${vendorId}/payouts`, { method: 'POST', headers: authHeaders(true), body: JSON.stringify(body) });
+                const data = await readJson(res);
+                if (!res.ok) throw new Error(data.message || 'Failed to record payout');
+                status.textContent = 'Payout recorded!';
+                status.className = 'sm:col-span-2 text-sm text-green-600';
+                loadVendors();
+            } catch (err) {
+                status.textContent = err.message;
+                status.className = 'sm:col-span-2 text-sm text-red-600';
+            }
         }
 
         async function loadAdminProducts() {
@@ -332,6 +371,11 @@
             document.getElementById('admin-product-search')?.addEventListener('input', () => {
                 clearTimeout(debounce);
                 debounce = setTimeout(loadAdminProducts, 250);
+            });
+            let customerDebounce = null;
+            document.getElementById('admin-customer-search')?.addEventListener('input', () => {
+                clearTimeout(customerDebounce);
+                customerDebounce = setTimeout(loadCustomers, 250);
             });
         });
     </script>
