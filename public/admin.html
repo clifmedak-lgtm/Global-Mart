@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
- 
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +17,7 @@
         .avatar { display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border-radius: 9999px; flex-shrink: 0; }
     </style>
 </head>
- 
+
 <body class="bg-slate-50">
     <div class="min-h-screen">
         <div class="md:hidden flex items-center justify-between bg-white/80 backdrop-blur shadow-sm px-4 py-3 sticky top-0 z-40 border-b border-slate-100">
@@ -27,7 +27,7 @@
             </button>
         </div>
         <div id="admin-sidebar-overlay" class="hidden md:hidden fixed inset-0 bg-black/40 z-40"></div>
- 
+
         <div class="flex">
             <div id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white p-6 min-h-screen transform -translate-x-full transition-transform duration-200 md:static md:translate-x-0 md:border-r md:border-slate-100">
                 <div class="hidden md:flex items-center gap-2.5 mb-10 px-1">
@@ -67,7 +67,7 @@
                     </div>
                 </nav>
             </div>
- 
+
             <div class="flex-1 p-4 sm:p-6 md:p-10 min-w-0">
                 <div id="login-section" class="max-w-md mx-auto mt-8 md:mt-24">
                     <div class="text-center mb-6">
@@ -81,7 +81,7 @@
                         <p id="admin-login-status" class="text-sm text-red-600 mt-3"></p>
                     </div>
                 </div>
- 
+
                 <div id="dashboard" class="hidden">
                     <div id="section-dashboard">
                         <h2 class="text-2xl font-bold text-slate-900">Dashboard</h2>
@@ -92,10 +92,10 @@
                             <div onclick="showSection('products')" class="stat-card bg-white p-6 rounded-2xl border border-slate-100"><p class="text-slate-500 text-sm">Products</p><p class="text-2xl font-bold text-slate-900 mt-1" id="stat-products">0</p></div>
                             <div onclick="showSection('orders')" class="stat-card bg-white p-6 rounded-2xl border border-slate-100"><p class="text-slate-500 text-sm">Orders (paid)</p><p class="text-2xl font-bold text-slate-900 mt-1" id="stat-orders">0</p></div>
                             <div onclick="showSection('orders')" class="stat-card bg-white p-6 rounded-2xl border border-slate-100"><p class="text-slate-500 text-sm">Total sales (GMV)</p><p class="text-2xl font-bold text-slate-900 mt-1" id="stat-gmv">0 CFA</p></div>
-                            <div onclick="showSection('coupons')" class="stat-card bg-gradient-to-br from-blue-600 to-indigo-600 p-6 rounded-2xl"><p class="text-blue-100 text-sm">Platform revenue</p><p class="text-2xl font-bold text-white mt-1" id="stat-revenue">0 CFA</p></div>
+                            <div onclick="showSection('orders')" class="stat-card bg-gradient-to-br from-blue-600 to-indigo-600 p-6 rounded-2xl"><p class="text-blue-100 text-sm">Platform revenue</p><p class="text-2xl font-bold text-white mt-1" id="stat-revenue">0 CFA</p></div>
                         </div>
                     </div>
- 
+
                     <div id="section-customers" class="hidden">
                         <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
                             <h2 class="text-2xl font-bold text-slate-900">Customers</h2>
@@ -106,12 +106,12 @@
                         </div>
                         <div id="admin-customers-list" class="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden">Loading...</div>
                     </div>
- 
+
                     <div id="section-vendors" class="hidden">
                         <h2 class="text-2xl font-bold text-slate-900 mb-6">Vendors</h2>
                         <div id="vendors-list" class="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden">Loading...</div>
                     </div>
- 
+
                     <div id="section-products" class="hidden">
                         <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
                             <h2 class="text-2xl font-bold text-slate-900">Products</h2>
@@ -122,12 +122,12 @@
                         </div>
                         <div id="admin-products-list" class="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden">Loading...</div>
                     </div>
- 
+
                     <div id="section-orders" class="hidden">
                         <h2 class="text-2xl font-bold text-slate-900 mb-6">Orders</h2>
                         <div id="admin-orders-list" class="space-y-3">Loading...</div>
                     </div>
- 
+
                     <div id="section-coupons" class="hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-slate-900">Coupons</h2>
@@ -155,7 +155,7 @@
             </div>
         </div>
     </div>
- 
+
     <script>
         const API_URL = window.location.origin;
         const AVATAR_COLORS = ['bg-blue-100 text-blue-700', 'bg-indigo-100 text-indigo-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700', 'bg-pink-100 text-pink-700', 'bg-cyan-100 text-cyan-700'];
@@ -167,7 +167,7 @@
         function pill(text, color) {
             return `<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-${color}-50 text-${color}-700">${text}</span>`;
         }
- 
+
         function authHeaders(json = false) {
             const token = localStorage.getItem('admin-token');
             const headers = {};
@@ -175,12 +175,12 @@
             if (token) headers['Authorization'] = `Bearer ${token}`;
             return headers;
         }
- 
+
         async function readJson(res) {
             const text = await res.text();
             try { return text ? JSON.parse(text) : {}; } catch { return { message: text || `Server returned ${res.status}` }; }
         }
- 
+
         async function adminLogin() {
             const secret = document.getElementById('admin-secret').value;
             const status = document.getElementById('admin-login-status');
@@ -198,12 +198,12 @@
                 status.textContent = err.message;
             }
         }
- 
+
         function adminLogout() {
             localStorage.removeItem('admin-token');
             location.reload();
         }
- 
+
         function showSection(name) {
             document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
             document.getElementById(`section-${name}`)?.classList.remove('hidden');
@@ -216,7 +216,7 @@
             if (name === 'orders') loadAdminOrders();
             if (name === 'coupons') loadCoupons();
         }
- 
+
         async function loadCustomers() {
             const search = document.getElementById('admin-customer-search')?.value || '';
             const res = await fetch(`${API_URL}/api/admin/customers${search ? `?search=${encodeURIComponent(search)}` : ''}`, { headers: authHeaders() });
@@ -235,7 +235,7 @@
                 </div>
             `).join('') || '<p class="p-6 text-slate-500 text-center">No customers yet.</p>';
         }
- 
+
         function openAdminSidebar() {
             document.getElementById('admin-sidebar')?.classList.remove('-translate-x-full');
             document.getElementById('admin-sidebar-overlay')?.classList.remove('hidden');
@@ -244,7 +244,7 @@
             document.getElementById('admin-sidebar')?.classList.add('-translate-x-full');
             document.getElementById('admin-sidebar-overlay')?.classList.add('hidden');
         }
- 
+
         async function loadDashboard() {
             const res = await fetch(`${API_URL}/api/admin/stats`, { headers: authHeaders() });
             const data = await readJson(res);
@@ -256,7 +256,7 @@
             document.getElementById('stat-gmv').textContent = data.totalGMV.toLocaleString() + ' CFA';
             document.getElementById('stat-revenue').textContent = data.platformRevenue.toLocaleString() + ' CFA';
         }
- 
+
         async function loadVendors() {
             const res = await fetch(`${API_URL}/api/admin/vendors`, { headers: authHeaders() });
             const vendors = await readJson(res);
@@ -286,14 +286,14 @@
                 </div>
             `).join('') || '<p class="p-6 text-slate-500 text-center">No vendors yet.</p>';
         }
- 
+
         function openPayoutForm(vendorId, name, balance) {
             const form = document.getElementById(`payout-form-${vendorId}`);
             form.classList.toggle('hidden');
             const amountInput = document.getElementById(`payout-amount-${vendorId}`);
             if (!amountInput.value) amountInput.placeholder = `Amount (CFA) — up to ${balance.toLocaleString()} owed`;
         }
- 
+
         async function recordPayout(vendorId) {
             const status = document.getElementById(`payout-status-${vendorId}`);
             const body = {
@@ -313,7 +313,7 @@
                 status.className = 'sm:col-span-2 text-sm text-red-600';
             }
         }
- 
+
         async function loadAdminProducts() {
             const search = document.getElementById('admin-product-search')?.value || '';
             const res = await fetch(`${API_URL}/api/admin/products${search ? `?search=${encodeURIComponent(search)}` : ''}`, { headers: authHeaders() });
@@ -330,14 +330,14 @@
                 </div>
             `).join('') || '<p class="p-6 text-slate-500 text-center">No products found.</p>';
         }
- 
+
         async function deleteAdminProduct(id) {
             if (!confirm('Delete this product? This cannot be undone.')) return;
             const res = await fetch(`${API_URL}/api/admin/products/${id}`, { method: 'DELETE', headers: authHeaders() });
             const data = await readJson(res);
             if (res.ok) loadAdminProducts(); else alert(data.message || 'Failed to delete');
         }
- 
+
         async function loadAdminOrders() {
             const res = await fetch(`${API_URL}/api/admin/orders`, { headers: authHeaders() });
             const orders = await readJson(res);
@@ -368,7 +368,7 @@
                 </div>
             `).join('') || '<p class="text-slate-500 text-center py-6">No orders yet.</p>';
         }
- 
+
         async function loadCoupons() {
             const res = await fetch(`${API_URL}/api/admin/coupons`, { headers: authHeaders() });
             const coupons = await readJson(res);
@@ -389,7 +389,7 @@
                 </div>
             `}).join('') || '<p class="p-6 text-slate-500 text-center">No coupons yet.</p>';
         }
- 
+
         async function createCoupon() {
             const status = document.getElementById('coupon-form-status');
             const body = {
@@ -412,12 +412,12 @@
                 status.className = 'sm:col-span-2 text-sm text-red-600';
             }
         }
- 
+
         async function toggleCoupon(code) {
             const res = await fetch(`${API_URL}/api/admin/coupons/${code}/toggle`, { method: 'PUT', headers: authHeaders() });
             if (res.ok) loadCoupons();
         }
- 
+
         window.addEventListener('load', () => {
             if (localStorage.getItem('admin-token')) {
                 document.getElementById('login-section').classList.add('hidden');
@@ -439,55 +439,5 @@
         });
     </script>
 </body>
- 
+
 </html>
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

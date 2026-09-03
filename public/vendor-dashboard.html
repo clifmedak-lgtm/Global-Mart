@@ -106,15 +106,15 @@
                     <div id="stats" class="hidden">
                         <h2 class="text-2xl font-bold text-slate-900 mb-8">Dashboard</h2>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                            <div class="stat-card bg-white p-6 rounded-2xl border border-slate-100">
+                            <div onclick="showSection('products')" class="stat-card bg-white p-6 rounded-2xl border border-slate-100 cursor-pointer">
                                 <p class="text-slate-500 text-sm">Products</p>
                                 <p class="text-2xl font-bold text-slate-900 mt-1" id="stat-products">0</p>
                             </div>
-                            <div class="stat-card bg-white p-6 rounded-2xl border border-slate-100">
+                            <div onclick="showSection('orders')" class="stat-card bg-white p-6 rounded-2xl border border-slate-100 cursor-pointer">
                                 <p class="text-slate-500 text-sm">Orders</p>
                                 <p class="text-2xl font-bold text-slate-900 mt-1" id="stat-orders">0</p>
                             </div>
-                            <div class="stat-card bg-gradient-to-br from-blue-600 to-indigo-600 p-6 rounded-2xl">
+                            <div onclick="showSection('orders')" class="stat-card bg-gradient-to-br from-blue-600 to-indigo-600 p-6 rounded-2xl cursor-pointer">
                                 <p class="text-blue-100 text-sm">Revenue <span id="stat-commission-note" class="text-blue-200"></span></p>
                                 <p class="text-2xl font-bold text-white mt-1" id="stat-revenue">0 CFA</p>
                             </div>
@@ -180,8 +180,18 @@
                                 <option value="accessories">Accessories</option>
                                 <option value="audio">Audio</option>
                             </select>
-                            <input type="text" id="product-image" placeholder="Image URL"
-                                class="w-full px-4 py-2.5 border border-slate-200 rounded-xl mb-4 outline-none focus:border-blue-400">
+                            <div id="product-image-dropzone"
+                                class="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition mb-4"
+                                onclick="document.getElementById('product-image-file').click()">
+                                <img id="product-image-preview" src="" alt="" class="hidden mx-auto h-32 w-32 object-cover rounded-xl mb-2">
+                                <div id="product-image-placeholder">
+                                    <svg class="h-8 w-8 text-slate-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m0-3l-3-3m0 0l-3 3m3-3v11.25" /></svg>
+                                    <p class="text-sm text-slate-500 mt-2">Drag & drop an image, or click to browse</p>
+                                </div>
+                                <p id="product-image-upload-status" class="text-xs mt-2 text-slate-500"></p>
+                            </div>
+                            <input type="file" id="product-image-file" accept="image/*" class="hidden">
+                            <input type="hidden" id="product-image">
                             <div class="flex gap-3">
                                 <button onclick="saveProduct()"
                                     class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 rounded-xl font-medium hover:opacity-90 transition">Save
@@ -503,6 +513,61 @@
             document.getElementById('product-stock').value = '';
             document.getElementById('product-category').selectedIndex = 0;
             document.getElementById('product-image').value = '';
+            resetImagePreview();
+        }
+
+        function resetImagePreview() {
+            const preview = document.getElementById('product-image-preview');
+            preview.src = '';
+            preview.classList.add('hidden');
+            document.getElementById('product-image-placeholder').classList.remove('hidden');
+            document.getElementById('product-image-upload-status').textContent = '';
+        }
+
+        function setImagePreview(url) {
+            const preview = document.getElementById('product-image-preview');
+            preview.src = url;
+            preview.classList.remove('hidden');
+            document.getElementById('product-image-placeholder').classList.add('hidden');
+        }
+
+        async function handleImageFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                alert('Please choose an image file.');
+                return;
+            }
+            const status = document.getElementById('product-image-upload-status');
+
+            // Show an instant local preview while the upload happens in the background.
+            const localPreviewUrl = URL.createObjectURL(file);
+            setImagePreview(localPreviewUrl);
+            status.textContent = 'Uploading...';
+            status.className = 'text-xs mt-2 text-blue-600';
+
+            try {
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = () => reject(new Error('Unable to read file'));
+                    reader.readAsDataURL(file);
+                });
+
+                const res = await fetch(`${API_URL}/api/upload/image`, {
+                    method: 'POST',
+                    headers: authHeaders(true),
+                    body: JSON.stringify({ image: dataUrl })
+                });
+                const data = await readJson(res);
+                if (!res.ok) throw new Error(data.message || 'Upload failed');
+
+                document.getElementById('product-image').value = data.url;
+                setImagePreview(data.url);
+                status.textContent = 'Image uploaded ✓';
+                status.className = 'text-xs mt-2 text-emerald-600';
+            } catch (err) {
+                status.textContent = err.message || 'Upload failed. Try again.';
+                status.className = 'text-xs mt-2 text-red-600';
+            }
         }
 
         async function saveProduct() {
@@ -569,6 +634,7 @@
             document.getElementById('product-stock').value = product.dataset.stock;
             document.getElementById('product-category').value = product.dataset.category;
             document.getElementById('product-image').value = product.dataset.image;
+            if (product.dataset.image) setImagePreview(product.dataset.image); else resetImagePreview();
             document.getElementById('product-form').dataset.editId = id;
             document.getElementById('product-form').classList.remove('hidden');
         }
@@ -622,6 +688,24 @@
             document.getElementById('vendor-mobile-menu-button')?.addEventListener('click', openVendorSidebar);
             document.getElementById('vendor-sidebar-close')?.addEventListener('click', closeVendorSidebar);
             document.getElementById('vendor-sidebar-overlay')?.addEventListener('click', closeVendorSidebar);
+
+            const dropzone = document.getElementById('product-image-dropzone');
+            const fileInput = document.getElementById('product-image-file');
+            fileInput?.addEventListener('change', (e) => {
+                if (e.target.files[0]) handleImageFile(e.target.files[0]);
+            });
+            dropzone?.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('border-blue-400', 'bg-blue-50/30');
+            });
+            dropzone?.addEventListener('dragleave', () => {
+                dropzone.classList.remove('border-blue-400', 'bg-blue-50/30');
+            });
+            dropzone?.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-blue-400', 'bg-blue-50/30');
+                if (e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]);
+            });
         });
     </script>
 
