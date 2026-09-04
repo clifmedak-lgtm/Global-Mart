@@ -132,6 +132,19 @@
                                 <h4 class="text-sm font-semibold text-slate-700 mb-2">Payout history</h4>
                                 <div id="payout-history-list" class="space-y-2 text-sm text-slate-600">No payouts yet.</div>
                             </div>
+                            <div class="mt-4 pt-4 border-t border-slate-100">
+                                <h4 class="text-sm font-semibold text-slate-700 mb-2">Mobile Money account</h4>
+                                <p class="text-xs text-slate-400 mb-3">This is where the platform sends your money — make sure it's your own number.</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <select id="momo-provider" class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-400">
+                                        <option value="MTN">MTN Mobile Money</option>
+                                        <option value="ORANGE">Orange Money</option>
+                                    </select>
+                                    <input type="tel" id="momo-phone" placeholder="+237600000000" class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-400">
+                                    <button onclick="saveMomoInfo()" class="bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800">Save</button>
+                                </div>
+                                <p id="momo-status" class="text-xs mt-2"></p>
+                            </div>
                         </div>
 
                         <!-- Recent Orders -->
@@ -356,6 +369,7 @@
         }
 
         async function loadStats() {
+            loadMomoInfo();
             try {
                 const res = await fetchWithTimeout(`${API_URL}/api/vendor/stats`, {
                     headers: authHeaders()
@@ -395,6 +409,35 @@
                 document.getElementById('stat-products').textContent = '—';
                 document.getElementById('stat-orders').textContent = '—';
                 document.getElementById('stat-revenue').textContent = '—';
+            }
+        }
+
+        async function loadMomoInfo() {
+            try {
+                const res = await fetch(`${API_URL}/api/vendor/momo`, { headers: authHeaders() });
+                const data = await readJson(res);
+                if (res.ok) {
+                    if (data.momoProvider) document.getElementById('momo-provider').value = data.momoProvider;
+                    if (data.momoPhone) document.getElementById('momo-phone').value = data.momoPhone;
+                }
+            } catch (err) { /* non-critical */ }
+        }
+
+        async function saveMomoInfo() {
+            const status = document.getElementById('momo-status');
+            const body = {
+                momoProvider: document.getElementById('momo-provider').value,
+                momoPhone: document.getElementById('momo-phone').value,
+            };
+            try {
+                const res = await fetch(`${API_URL}/api/vendor/momo`, { method: 'PUT', headers: authHeaders(true), body: JSON.stringify(body) });
+                const data = await readJson(res);
+                if (!res.ok) throw new Error(data.message || 'Failed to save');
+                status.textContent = 'Saved!';
+                status.className = 'text-xs mt-2 text-emerald-600';
+            } catch (err) {
+                status.textContent = err.message;
+                status.className = 'text-xs mt-2 text-red-600';
             }
         }
 

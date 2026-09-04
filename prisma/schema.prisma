@@ -21,6 +21,9 @@ model User {
   orders    Order[]
   role String @default("customer")
   businessName String?
+  momoProvider String? // "MTN" or "ORANGE" — vendor's real payout account
+  momoPhone String?    // vendor's real Mobile Money number, e.g. +237600000000
+  notchpayRecipientId String? // cached once created, so we don't recreate it on every payout
   products  Product[] @relation("VendorProducts")
   passwordResetTokens PasswordResetToken[]
   reviews   Review[]
@@ -34,7 +37,8 @@ model Payout {
   vendor    User     @relation(fields: [vendorId], references: [id])
   amount    Int      // CFA amount actually sent to the vendor
   method    String?  // e.g. "MTN Mobile Money", "Orange Money", "Bank transfer"
-  reference String?  // free-text: transaction id, phone number used, etc.
+  reference String?  // free-text note, or the real NotchPay transfer id when automated
+  automated Boolean  @default(false) // true = actually sent via NotchPay Transfers API, false = manual record
   notes     String?
   createdAt DateTime @default(now())
 

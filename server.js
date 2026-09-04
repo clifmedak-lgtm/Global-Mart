@@ -21,6 +21,9 @@ const prisma = new PrismaClient();
 // Works with a sandbox key (starts with "sb.") available immediately at signup —
 // no business registration required to start testing.
 const NOTCHPAY_PUBLIC_KEY = process.env.NOTCHPAY_PUBLIC_KEY;
+// Private key — only needed for Transfers (paying vendors out), never for collecting payments.
+// Get it from business.notchpay.co/settings/developer/api-keys. Keep it secret.
+const NOTCHPAY_PRIVATE_KEY = process.env.NOTCHPAY_PRIVATE_KEY;
 const NOTCHPAY_BASE_URL = 'https://api.notchpay.co';
 // Public base URL of this app, used to build NotchPay's callback URL.
 const APP_URL = process.env.APP_URL || `http://localhost:${port}`;
@@ -807,6 +810,33 @@ app.put('/api/vendor/orders/:id/status', requireVendor, asyncHandler(async (req,
   res.json({ success: true, order: updated });
 }));
 
+app.get('/api/vendor/momo', requireVendor, asyncHandler(async (req, res) => {
+  res.json({ momoProvider: req.user.momoProvider, momoPhone: req.user.momoPhone });
+}));
+
+app.put('/api/vendor/momo', requireVendor, asyncHandler(async (req, res) => {
+  const { momoProvider, momoPhone } = req.body;
+  if (!['MTN', 'ORANGE'].includes(momoProvider)) {
+    return res.status(400).json({ success: false, message: 'momoProvider must be MTN or ORANGE' });
+  }
+  if (!momoPhone?.trim() || !/^\+?[0-9]{8,15}$/.test(momoPhone.trim())) {
+    return res.status(400).json({ success: false, message: 'Enter a valid phone number, e.g. +237600000000' });
+  }
+
+  // If the number/provider actually changed, drop the cached recipient so a fresh one
+  // gets created next payout — otherwise money could get sent to the old number.
+  const changed = req.user.momoProvider !== momoProvider || req.user.momoPhone !== momoPhone.trim();
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      momoProvider,
+      momoPhone: momoPhone.trim(),
+      notchpayRecipientId: changed ? null : req.user.notchpayRecipientId,
+    }
+  });
+  res.json({ success: true });
+}));
+
 app.get('/api/vendor/stats', requireVendor, asyncHandler(async (req, res) => {
   const vendorWhere = vendorProductsWhere(req.user);
   const products = await prisma.product.findMany({ where: vendorWhere });
@@ -925,6 +955,7 @@ app.get('/api/admin/vendors', requireAdmin, asyncHandler(async (req, res) => {
     return {
       id: v.id, fullName: v.fullName, email: v.email, businessName: v.businessName,
       createdAt: v.createdAt, productCount, totalEarned, totalPaidOut, balance,
+      momoProvider: v.momoProvider, momoPhone: v.momoPhone,
     };
   }));
   res.json(vendorsWithCounts);
@@ -958,6 +989,91 @@ app.post('/api/admin/vendors/:id/payouts', requireAdmin, asyncHandler(async (req
     data: { vendorId: vendor.id, amount: amountNum, method: method?.trim() || null, reference: reference?.trim() || null, notes: notes?.trim() || null }
   });
   res.json({ success: true, payout });
+}));
+
+// Real Mobile Money payout — actually sends the money via NotchPay's Transfers API,
+// straight to the vendor's own registered MTN/Orange account. Requires NOTCHPAY_PRIVATE_KEY
+// and your server's IP whitelisted at business.notchpay.co/settings/developer/ips.
+app.post('/api/admin/vendors/:id/payouts/send', requireAdmin, asyncHandler(async (req, res) => {
+  if (!NOTCHPAY_PUBLIC_KEY || !NOTCHPAY_PRIVATE_KEY) {
+    return res.status(503).json({ success: false, message: 'NOTCHPAY_PRIVATE_KEY is not configured — real transfers are unavailable until it is set.' });
+  }
+
+  const { amount } = req.body;
+  const amountNum = parseInt(amount);
+  if (!amountNum || amountNum <= 0) {
+    return res.status(400).json({ success: false, message: 'Amount must be a positive number' });
+  }
+
+  const vendor = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!vendor || vendor.role !== 'vendor') return res.status(404).json({ success: false, message: 'Vendor not found' });
+  if (!vendor.momoProvider || !vendor.momoPhone) {
+    return res.status(400).json({ success: false, message: 'This vendor has not registered a Mobile Money number yet.' });
+  }
+
+  const { balance } = await getVendorBalance(vendor);
+  if (amountNum > balance) {
+    return res.status(400).json({ success: false, message: `Amount exceeds vendor's current balance (${balance.toLocaleString()} CFA owed)` });
+  }
+
+  const channel = vendor.momoProvider === 'MTN' ? 'cm.mtn' : 'cm.orange';
+  const notchpayHeaders = { 'Authorization': NOTCHPAY_PUBLIC_KEY, 'X-Grant': NOTCHPAY_PRIVATE_KEY, 'Content-Type': 'application/json' };
+
+  // Create (or reuse) the recipient tied to this vendor's Mobile Money number.
+  let recipientId = vendor.notchpayRecipientId;
+  if (!recipientId) {
+    const recRes = await fetch(`${NOTCHPAY_BASE_URL}/recipients`, {
+      method: 'POST',
+      headers: notchpayHeaders,
+      body: JSON.stringify({
+        channel,
+        name: vendor.businessName || vendor.fullName,
+        phone: vendor.momoPhone,
+        account_number: vendor.momoPhone,
+      }),
+    });
+    const recData = await recRes.json();
+    if (!recRes.ok || !recData.recipient?.id) {
+      console.error('NotchPay recipient error:', recData);
+      return res.status(502).json({ success: false, message: recData.message || 'Unable to register this vendor\'s Mobile Money account with NotchPay.' });
+    }
+    recipientId = recData.recipient.id;
+    await prisma.user.update({ where: { id: vendor.id }, data: { notchpayRecipientId: recipientId } });
+  }
+
+  // Initiate the actual transfer.
+  const transferReference = `payout-${vendor.id}-${Date.now()}`;
+  const transferRes = await fetch(`${NOTCHPAY_BASE_URL}/transfers`, {
+    method: 'POST',
+    headers: notchpayHeaders,
+    body: JSON.stringify({
+      amount: amountNum,
+      currency: 'XAF',
+      beneficiary: recipientId,
+      recipient: recipientId,
+      channel,
+      description: `GlobalMart payout to ${vendor.businessName || vendor.fullName}`,
+      reference: transferReference,
+    }),
+  });
+  const transferData = await transferRes.json();
+  if (!transferRes.ok) {
+    console.error('NotchPay transfer error:', transferData);
+    return res.status(502).json({ success: false, message: transferData.message || 'Transfer failed. Check that your business account is verified and your server IP is whitelisted with NotchPay.' });
+  }
+
+  const payout = await prisma.payout.create({
+    data: {
+      vendorId: vendor.id,
+      amount: amountNum,
+      method: vendor.momoProvider === 'MTN' ? 'MTN Mobile Money' : 'Orange Money',
+      reference: transferReference,
+      automated: true,
+      notes: 'Sent automatically via NotchPay Transfers',
+    }
+  });
+
+  res.json({ success: true, payout, transfer: transferData.transfer || transferData });
 }));
 
 app.get('/api/admin/products', requireAdmin, asyncHandler(async (req, res) => {

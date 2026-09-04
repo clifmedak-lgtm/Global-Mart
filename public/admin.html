@@ -269,11 +269,15 @@
                                 <p class="font-semibold text-slate-900 truncate">${v.businessName || v.fullName}</p>
                                 <p class="text-sm text-slate-500 truncate">${v.fullName} — ${v.email}</p>
                                 <p class="text-sm text-slate-500 mt-0.5">${v.productCount} products — earned ${v.totalEarned.toLocaleString()} CFA — paid out ${v.totalPaidOut.toLocaleString()} CFA</p>
+                                ${v.momoPhone ? `<p class="text-xs text-slate-400 mt-0.5">📱 ${v.momoProvider === 'MTN' ? 'MTN' : 'Orange'} Money: ${v.momoPhone}</p>` : `<p class="text-xs text-amber-500 mt-0.5">⚠️ No Mobile Money number registered yet</p>`}
                             </div>
                         </div>
                         <div class="text-right flex-shrink-0">
                             <p class="text-lg font-bold ${v.balance > 0 ? 'text-amber-600' : 'text-slate-400'}">${v.balance.toLocaleString()} CFA owed</p>
-                            <button onclick="openPayoutForm('${v.id}', '${(v.businessName || v.fullName).replace(/'/g, "\\'")}', ${v.balance})" class="text-sm text-blue-600 hover:underline mt-1 font-medium">Record payout</button>
+                            <div class="flex flex-col items-end gap-0.5 mt-1">
+                                ${v.momoPhone ? `<button onclick="sendRealPayout('${v.id}', ${v.balance})" class="text-sm text-emerald-600 hover:underline font-medium">Send via Mobile Money</button>` : ''}
+                                <button onclick="openPayoutForm('${v.id}', '${(v.businessName || v.fullName).replace(/'/g, "\\'")}', ${v.balance})" class="text-sm text-blue-600 hover:underline font-medium">Record payout manually</button>
+                            </div>
                         </div>
                     </div>
                     <div id="payout-form-${v.id}" class="hidden mt-4 bg-slate-50 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -292,6 +296,21 @@
             form.classList.toggle('hidden');
             const amountInput = document.getElementById(`payout-amount-${vendorId}`);
             if (!amountInput.value) amountInput.placeholder = `Amount (CFA) — up to ${balance.toLocaleString()} owed`;
+        }
+
+        async function sendRealPayout(vendorId, balance) {
+            const amount = prompt(`Send how much to this vendor via Mobile Money? (up to ${balance.toLocaleString()} CFA owed)`);
+            if (!amount) return;
+            if (!confirm(`This will send ${Number(amount).toLocaleString()} CFA to the vendor's real Mobile Money account right now. Continue?`)) return;
+            try {
+                const res = await fetch(`${API_URL}/api/admin/vendors/${vendorId}/payouts/send`, { method: 'POST', headers: authHeaders(true), body: JSON.stringify({ amount }) });
+                const data = await readJson(res);
+                if (!res.ok) throw new Error(data.message || 'Transfer failed');
+                alert('Transfer initiated successfully!');
+                loadVendors();
+            } catch (err) {
+                alert('Transfer failed: ' + err.message);
+            }
         }
 
         async function recordPayout(vendorId) {
