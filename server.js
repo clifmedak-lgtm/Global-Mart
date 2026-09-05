@@ -667,7 +667,13 @@ app.post('/api/upload/image', requireVendor, asyncHandler(async (req, res) => {
   if (!image?.startsWith('data:')) {
     return res.status(400).json({ success: false, message: 'Send a base64 data URL in the "image" field' });
   }
-  const result = await cloudinary.uploader.upload(image, { folder: 'globalmart/products' });
+  // Smart-crop every uploaded photo to a consistent square, keeping the main subject in
+  // frame automatically (Cloudinary's saliency detection) instead of a blind center-crop —
+  // this is what stops a badly-framed photo from displaying as an ugly random close-up.
+  const result = await cloudinary.uploader.upload(image, {
+    folder: 'globalmart/products',
+    transformation: [{ width: 1000, height: 1000, crop: 'fill', gravity: 'auto', quality: 'auto' }],
+  });
   res.json({ success: true, url: result.secure_url });
 }));
 
