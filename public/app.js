@@ -187,7 +187,7 @@ function renderProductCard(product) {
   const image = escapeHtml(product.image || '');
   const id = escapeHtml(product.id);
   const imageHtml = image
-    ? `<img loading="lazy" src="${image}" alt="${name}" class="h-64 w-full object-cover transition duration-500 group-hover:scale-105">`
+    ? `<img loading="lazy" src="${image}" alt="${name}" class="h-64 w-full object-contain bg-gray-50 transition duration-500 group-hover:scale-105">`
     : `<div class="h-64 w-full bg-gray-100 flex items-center justify-center text-4xl text-gray-400">📦</div>`;
 
   return `
@@ -371,7 +371,7 @@ async function initProductPage() {
   try {
    const product = await apiFetch(`/api/products?id=${encodeURIComponent(productId)}`);
     const imageHtml = product.image
-      ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="h-96 w-full object-cover">`
+      ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="h-96 w-full object-contain bg-gray-50">`
       : `<div class="h-96 w-full bg-gray-100 flex items-center justify-center text-6xl text-gray-400">📦</div>`;
 
     detailNode.innerHTML = `

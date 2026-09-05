@@ -196,7 +196,7 @@
                             <div id="product-image-dropzone"
                                 class="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition mb-4"
                                 onclick="document.getElementById('product-image-file').click()">
-                                <img id="product-image-preview" src="" alt="" class="hidden mx-auto h-32 w-32 object-cover rounded-xl mb-2">
+                                <img id="product-image-preview" src="" alt="" class="hidden mx-auto h-32 w-32 object-contain bg-slate-50 rounded-xl mb-2">
                                 <div id="product-image-placeholder">
                                     <svg class="h-8 w-8 text-slate-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m0-3l-3-3m0 0l-3 3m3-3v11.25" /></svg>
                                     <p class="text-sm text-slate-500 mt-2">Drag & drop an image, or click to browse</p>
@@ -450,7 +450,7 @@
                 if (!res.ok) throw new Error(products.message || `Request failed (${res.status})`);
                 const html = (products || []).map(p => `
     <div class="product-card bg-white p-4 rounded-2xl border border-slate-100 hover:shadow-md transition cursor-pointer" data-id="${p.id}" data-name="${escapeHtml(p.name)}" data-description="${escapeHtml(p.description)}" data-price="${p.price}" data-category="${p.category}" data-image="${escapeHtml(p.image)}" data-stock="${p.stock ?? 999}" onclick="showProductDetail('${p.id}')">
-        <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="w-full h-40 object-cover rounded-xl mb-3" onerror="this.style.display='none'">
+        <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="w-full h-40 object-contain bg-slate-50 rounded-xl mb-3" onerror="this.style.display='none'">
         <h4 class="font-bold text-slate-900">${escapeHtml(p.name)}</h4>
         <p class="text-sm text-slate-600">${Number(p.price || 0).toLocaleString()} CFA</p>
         <div class="mt-2">${p.stock > 0 ? pill(`${p.stock} in stock`, 'emerald') : pill('Out of stock', 'red')}</div>
@@ -757,7 +757,7 @@
         <div class="absolute inset-0 bg-black/50" onclick="closeProductDetail()"></div>
         <div class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <button onclick="closeProductDetail()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-900 text-xl">✕</button>
-            <img id="detail-modal-image" src="" alt="" class="w-full h-56 object-cover rounded-t-2xl">
+            <img id="detail-modal-image" src="" alt="" class="w-full h-56 object-contain bg-slate-50 rounded-t-2xl">
             <div class="p-6">
                 <p id="detail-modal-category" class="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-1"></p>
                 <h3 id="detail-modal-name" class="text-xl font-bold text-slate-900 mb-2"></h3>
