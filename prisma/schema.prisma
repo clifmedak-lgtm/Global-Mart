@@ -70,6 +70,7 @@ model Product {
   id          String      @id @default(cuid()) // Default to cuid, but can be set manually for seeding
   name        String
   description String?
+  features    String[]    @default([]) // Short bullet points, e.g. "About this item" (Walmart-style)
   image       String?
   vendor      String                            // Display name (kept for old seeded rows without a real account)
   vendorId    String?                           // Real link to the vendor's User account (used for new products)

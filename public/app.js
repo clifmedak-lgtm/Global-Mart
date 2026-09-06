@@ -374,6 +374,12 @@ async function initProductPage() {
       ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="h-96 w-full object-cover">`
       : `<div class="h-96 w-full bg-gray-100 flex items-center justify-center text-6xl text-gray-400">📦</div>`;
 
+    const featuresHtml = (product.features || []).length
+      ? `<ul class="mt-4 space-y-1.5 list-disc list-inside text-sm text-slate-700">
+           ${product.features.map(f => `<li>${escapeHtml(f)}</li>`).join('')}
+         </ul>`
+      : '';
+
     detailNode.innerHTML = `
       <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] items-start">
         <div class="overflow-hidden rounded-3xl bg-white shadow-sm">
@@ -383,7 +389,7 @@ async function initProductPage() {
           <div class="rounded-3xl bg-white p-6 shadow-sm">
             <span class="badge-pill bg-blue-50 text-blue-700">${escapeHtml(product.category)}</span>
             <h1 class="mt-4 text-3xl font-bold text-slate-900">${escapeHtml(product.name)}</h1>
-            <p class="mt-3 text-sm text-slate-500">${escapeHtml(product.description)}</p>
+            ${featuresHtml}
             <div class="mt-6 flex items-center gap-4">
               <span class="text-3xl font-extrabold text-blue-600">${formatMoney(product.price)}</span>
               ${product.rating ? `<span class="text-sm text-yellow-600">${product.rating.toFixed(1)} ★</span>` : ''}
@@ -399,6 +405,10 @@ async function initProductPage() {
             <p class="mt-3 text-sm text-slate-500">Sold by <strong>${escapeHtml(product.vendor)}</strong>. Secure payment, verified seller of electronics and accessories.</p>
           </div>
         </div>
+      </div>
+      <div class="mt-8 rounded-3xl bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-900 mb-3">Product description</h2>
+        <p class="text-sm text-slate-600 leading-relaxed whitespace-pre-line">${escapeHtml(product.description) || 'No description provided.'}</p>
       </div>
       <div id="product-reviews" class="mt-10 rounded-3xl bg-white p-6 shadow-sm"></div>
     `;

@@ -738,19 +738,21 @@ app.get('/api/vendor/products', requireVendor, asyncHandler(async (req, res) => 
 }));
 
 app.post('/api/vendor/products', requireVendor, asyncHandler(async (req, res) => {
-  const { name, description, price, category, image, stock } = req.body;
+  const { name, description, price, category, image, stock, features } = req.body;
   if (!name?.trim() || !price || !category?.trim()) {
     return res.status(400).json({ success: false, message: 'Missing product fields' });
   }
 
   const slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const uniqueSuffix = crypto.randomBytes(3).toString('hex');
+  const cleanFeatures = Array.isArray(features) ? features.map(f => String(f).trim()).filter(Boolean).slice(0, 12) : [];
 
   const product = await prisma.product.create({
     data: {
       id: `${category.toLowerCase()}-${slug}-${uniqueSuffix}`,
       name: name.trim(),
       description: description?.trim() || '',
+      features: cleanFeatures,
       price: Math.max(1, parseInt(price)),
       category: category.toLowerCase(),
       image: image || '',
@@ -775,6 +777,7 @@ app.put('/api/vendor/products/:id', requireVendor, asyncHandler(async (req, res)
     data: {
       name: req.body.name || product.name,
       description: req.body.description !== undefined ? req.body.description : product.description,
+      features: Array.isArray(req.body.features) ? req.body.features.map(f => String(f).trim()).filter(Boolean).slice(0, 12) : product.features,
       price: req.body.price ? Math.max(1, parseInt(req.body.price)) : product.price,
       image: req.body.image || product.image,
       stock: req.body.stock !== undefined ? Math.max(0, parseInt(req.body.stock) || 0) : product.stock,

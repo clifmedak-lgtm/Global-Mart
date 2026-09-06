@@ -177,8 +177,12 @@
                             <h3 class="text-lg font-bold mb-4 text-slate-900">Add New Product</h3>
                             <input type="text" id="product-name" placeholder="Product Name"
                                 class="w-full px-4 py-2.5 border border-slate-200 rounded-xl mb-3 outline-none focus:border-blue-400">
-                            <input type="text" id="product-description" placeholder="Description"
-                                class="w-full px-4 py-2.5 border border-slate-200 rounded-xl mb-3 outline-none focus:border-blue-400">
+                            <label class="text-xs font-medium text-slate-500 mb-1 block">Full description (as long as you need — features, why it's great, specs...)</label>
+                            <textarea id="product-description" rows="5" placeholder="Describe the product in detail..."
+                                class="w-full px-4 py-2.5 border border-slate-200 rounded-xl mb-3 outline-none focus:border-blue-400"></textarea>
+                            <label class="text-xs font-medium text-slate-500 mb-1 block">Key features — one per line (shown as bullet points, like "About this item")</label>
+                            <textarea id="product-features" rows="4" placeholder="e.g.&#10;6.7-inch AMOLED display&#10;5000mAh battery, fast charging&#10;128GB storage"
+                                class="w-full px-4 py-2.5 border border-slate-200 rounded-xl mb-3 outline-none focus:border-blue-400"></textarea>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                                 <input type="number" id="product-price" placeholder="Price (CFA)"
                                     class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:border-blue-400">
@@ -449,7 +453,7 @@
                 const products = await readJson(res);
                 if (!res.ok) throw new Error(products.message || `Request failed (${res.status})`);
                 const html = (products || []).map(p => `
-    <div class="product-card bg-white p-4 rounded-2xl border border-slate-100 hover:shadow-md transition cursor-pointer" data-id="${p.id}" data-name="${escapeHtml(p.name)}" data-description="${escapeHtml(p.description)}" data-price="${p.price}" data-category="${p.category}" data-image="${escapeHtml(p.image)}" data-stock="${p.stock ?? 999}" onclick="showProductDetail('${p.id}')">
+    <div class="product-card bg-white p-4 rounded-2xl border border-slate-100 hover:shadow-md transition cursor-pointer" data-id="${p.id}" data-name="${escapeHtml(p.name)}" data-description="${escapeHtml(p.description)}" data-features="${escapeHtml(JSON.stringify(p.features || []))}" data-price="${p.price}" data-category="${p.category}" data-image="${escapeHtml(p.image)}" data-stock="${p.stock ?? 999}" onclick="showProductDetail('${p.id}')">
         <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="w-full h-40 object-cover rounded-xl mb-3" onerror="this.style.display='none'">
         <h4 class="font-bold text-slate-900">${escapeHtml(p.name)}</h4>
         <p class="text-sm text-slate-600">${Number(p.price || 0).toLocaleString()} CFA</p>
@@ -552,6 +556,7 @@
             form.dataset.editId = '';
             document.getElementById('product-name').value = '';
             document.getElementById('product-description').value = '';
+            document.getElementById('product-features').value = '';
             document.getElementById('product-price').value = '';
             document.getElementById('product-stock').value = '';
             document.getElementById('product-category').selectedIndex = 0;
@@ -619,6 +624,7 @@
             const product = {
                 name: document.getElementById('product-name').value,
                 description: document.getElementById('product-description').value,
+                features: document.getElementById('product-features').value.split('\n').map(f => f.trim()).filter(Boolean),
                 price: parseInt(document.getElementById('product-price').value),
                 category: document.getElementById('product-category').value,
                 image: document.getElementById('product-image').value,
@@ -658,6 +664,10 @@
             document.getElementById('detail-modal-price').textContent = Number(card.dataset.price || 0).toLocaleString() + ' CFA';
             document.getElementById('detail-modal-stock').textContent = card.dataset.stock > 0 ? `${card.dataset.stock} in stock` : 'Out of stock';
             document.getElementById('detail-modal-description').textContent = card.dataset.description || 'No description provided.';
+            const features = JSON.parse(card.dataset.features || '[]');
+            document.getElementById('detail-modal-features').innerHTML = features.length
+                ? features.map(f => `<li>${escapeHtml(f)}</li>`).join('')
+                : '';
             document.getElementById('detail-modal-edit').onclick = () => { closeProductDetail(); editProduct(id); };
             document.getElementById('detail-modal-delete').onclick = () => { closeProductDetail(); deleteProduct(id); };
             document.getElementById('product-detail-modal').classList.remove('hidden');
@@ -673,6 +683,7 @@
 
             document.getElementById('product-name').value = product.dataset.name;
             document.getElementById('product-description').value = product.dataset.description;
+            document.getElementById('product-features').value = (JSON.parse(product.dataset.features || '[]')).join('\n');
             document.getElementById('product-price').value = product.dataset.price;
             document.getElementById('product-stock').value = product.dataset.stock;
             document.getElementById('product-category').value = product.dataset.category;
@@ -765,6 +776,7 @@
                     <span id="detail-modal-price" class="text-lg font-bold text-slate-900"></span>
                     <span id="detail-modal-stock" class="text-sm text-slate-500"></span>
                 </div>
+                <ul id="detail-modal-features" class="list-disc list-inside text-sm text-slate-700 space-y-1 mb-3"></ul>
                 <p id="detail-modal-description" class="text-sm text-slate-600 leading-relaxed"></p>
                 <div class="flex gap-3 mt-6">
                     <button id="detail-modal-edit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 rounded-xl font-medium hover:opacity-90">Edit product</button>
