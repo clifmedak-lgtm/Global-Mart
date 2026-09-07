@@ -80,11 +80,19 @@ input:focus-visible {
         transition: none !important;
     }
 }
-/* Product cards inside horizontal carousels (PS5, Android, iPhone, Cases sections) */
+
+/* Product cards inside horizontal carousels (PS5, Android, iPhone, Cases sections).
+   A real fixed `width` (not just min-width) is required here: without it, a flex item
+   with a long unbroken text block (like a long product description) will grow to fit
+   its content instead of wrapping — which also silently breaks `line-clamp-3` on the
+   description, since clamping only works once the text is actually wrapping inside a
+   constrained box. */
 #ps5-list > article,
 #android-list > article,
 #iphone-list > article,
 #cases-list > article {
+    width: 280px;
     min-width: 280px;
+    max-width: 280px;
     flex-shrink: 0;
 }
