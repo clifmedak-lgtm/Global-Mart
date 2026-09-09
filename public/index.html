@@ -44,10 +44,10 @@
                 </div>
 
                 <nav class="hidden md:flex md:items-center md:gap-8">
-                    <a href="#main-content" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Home</a>
-                    <a href="#products" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Products</a>
-                    <a href="#featured" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Deals</a>
-                    <a href="#footer" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Contact</a>
+                    <a href="#main-content" data-i18n="nav_home" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Home</a>
+                    <a href="#products" data-i18n="nav_products" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Products</a>
+                    <a href="#featured" data-i18n="nav_deals" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Deals</a>
+                    <a href="#footer" data-i18n="nav_contact" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Contact</a>
                 </nav>
 
                 <div class="hidden md:flex flex-1 justify-center px-4">
@@ -56,21 +56,25 @@
                         <div
                             class="flex border border-gray-200 rounded-full overflow-hidden shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
                             <input id="desktop-search-input" type="search" class="w-full px-4 py-2 text-sm outline-none"
-                                placeholder="Search phones, brands, or accessories" aria-label="Search products">
-                            <button type="submit"
+                                placeholder="Search phones, brands, or accessories" data-i18n-placeholder="search_placeholder" aria-label="Search products">
+                            <button type="submit" data-i18n="search_button"
                                 class="bg-blue-600 px-5 text-white font-semibold text-sm hover:bg-blue-700">Search</button>
                         </div>
                     </form>
                 </div>
 
                 <div class="flex items-center gap-4">
+                    <div class="hidden sm:flex items-center rounded-full border border-gray-200 p-0.5 text-xs font-semibold">
+                        <button type="button" class="lang-toggle-btn rounded-full px-2.5 py-1 transition" data-lang="en">EN</button>
+                        <button type="button" class="lang-toggle-btn rounded-full px-2.5 py-1 transition" data-lang="fr">FR</button>
+                    </div>
                     <a id="account-button" href="account.html"
                         class="hidden sm:flex flex-col text-right text-gray-600 hover:text-blue-600 text-sm">
-                        <span class="text-xs text-gray-400">Welcome back</span>
-                        Account
+                        <span class="text-xs text-gray-400" data-i18n="welcome_back">Welcome back</span>
+                        <span data-i18n="nav_account">Account</span>
                     </a>
                     <button type="button"
-                        class="open-vendor-modal hidden sm:inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-blue-600">Vendor
+                        class="open-vendor-modal hidden sm:inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-blue-600" data-i18n="nav_vendor_sign_in">Vendor
                         sign in</button>
                     <button id="cart-open-button" type="button"
                         class="relative flex items-center justify-center text-gray-600 hover:text-blue-600"
@@ -150,22 +154,16 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <a href="#featured">
-                            <div
-                                class="bg-blue-50 h-32 rounded-2xl p-4 flex flex-col justify-end transform hover:scale-105 transition cursor-pointer">
-                                <span class="text-sm font-bold text-blue-800">Flash
-                                    Sale</span>
-                                <span class="text-xs text-blue-600">Up to 40% Off</span>
-                            </div>
-                        </a>
-                        <a href="#products">
-                            <div
-                                class="bg-gray-100 h-32 rounded-2xl p-4 flex flex-col justify-end transform hover:scale-105 transition cursor-pointer">
-                                <span class="text-sm font-bold text-gray-800">New
-                                    Arrivals</span>
-                                <span class="text-xs text-gray-500">Shop Latest Tech</span>
-                            </div>
-                        </a>
+                        <div
+                            class="bg-blue-50 h-32 rounded-2xl p-4 flex flex-col justify-end transform hover:scale-105 transition cursor-pointer">
+                            <span class="text-sm font-bold text-blue-800">Flash Sale</span>
+                            <span class="text-xs text-blue-600">Up to 40% Off</span>
+                        </div>
+                        <div
+                            class="bg-gray-100 h-32 rounded-2xl p-4 flex flex-col justify-end transform hover:scale-105 transition cursor-pointer">
+                            <span class="text-sm font-bold text-gray-800">New Arrivals</span>
+                            <span class="text-xs text-gray-500">Shop Latest Tech</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,8 +208,7 @@
                     <h3 class="text-2xl font-bold text-red-600 flex items-center gap-2">
                         <span>⚡</span> Flash Sales
                     </h3>
-                    <div class="flex gap-2 text-white font-bold text-sm" aria-label="Flash sale countdown timer"
-                        aria-live="polite">
+                    <div class="flex gap-2 text-white font-bold text-sm" aria-label="Flash sale countdown timer" aria-live="polite">
                         <span id="flash-hours" class="bg-gray-900 px-2 py-1 rounded">00h</span>
                         <span class="text-gray-900">:</span>
                         <span id="flash-minutes" class="bg-gray-900 px-2 py-1 rounded">00m</span>
@@ -219,34 +216,32 @@
                         <span id="flash-seconds" class="bg-gray-900 px-2 py-1 rounded">00s</span>
                     </div>
                 </div>
-                <a href="#products" class="text-red-600 hover:text-red-800 font-medium text-sm mt-4 sm:mt-0">See all
-                    deals
+                <a href="#" class="text-red-600 hover:text-red-800 font-medium text-sm mt-4 sm:mt-0">See all deals
                     &rarr;</a>
             </div>
 
             <!-- Flash sale cards loaded dynamically from DB -->
-            <div id="flash-sale-list"
-                class="grid grid-cols-2 overflow-x-auto scroll-smooth md:grid-cols-4 gap-6 hide-scrollbar">
+            <div id="flash-sale-list" class="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <!-- Skeleton placeholders while loading -->
-                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 min-w-[250px]">
+                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100">
                     <div class="h-40 bg-gray-200 rounded-lg mb-4"></div>
                     <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                     <div class="h-4 bg-gray-200 rounded w-full mb-3"></div>
                     <div class="h-5 bg-gray-200 rounded w-2/3"></div>
                 </div>
-                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 min-w-[250px] ">
+                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100">
                     <div class="h-40 bg-gray-200 rounded-lg mb-4"></div>
                     <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                     <div class="h-4 bg-gray-200 rounded w-full mb-3"></div>
                     <div class="h-5 bg-gray-200 rounded w-2/3"></div>
                 </div>
-                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 min-w-[250px] hidden md:block">
+                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 hidden md:block">
                     <div class="h-40 bg-gray-200 rounded-lg mb-4"></div>
                     <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                     <div class="h-4 bg-gray-200 rounded w-full mb-3"></div>
                     <div class="h-5 bg-gray-200 rounded w-2/3"></div>
                 </div>
-                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 min-w-[250px] hidden md:block">
+                <div class="animate-pulse bg-white rounded-xl p-4 border border-gray-100 hidden md:block">
                     <div class="h-40 bg-gray-200 rounded-lg mb-4"></div>
                     <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                     <div class="h-4 bg-gray-200 rounded w-full mb-3"></div>
@@ -596,21 +591,21 @@
         class="fixed inset-y-0 right-0 z-50 hidden w-full max-w-md bg-white shadow-2xl border-l border-gray-200 overflow-y-auto">
         <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
             <div>
-                <h2 class="text-xl font-bold text-gray-900">Your cart</h2>
-                <p class="text-sm text-gray-500">Review items and checkout securely.</p>
+                <h2 class="text-xl font-bold text-gray-900" data-i18n="your_cart">Your cart</h2>
+                <p class="text-sm text-gray-500" data-i18n="cart_review_items">Review items and checkout securely.</p>
             </div>
-            <button id="close-cart-drawer" type="button" class="text-gray-500 hover:text-gray-900">Close</button>
+            <button id="close-cart-drawer" type="button" class="text-gray-500 hover:text-gray-900" data-i18n="close">Close</button>
         </div>
         <div id="cart-items" class="space-y-4 p-6">
-            <p class="text-sm text-gray-500">Your cart is empty. Add products to get started.</p>
+            <p class="text-sm text-gray-500" data-i18n="cart_empty">Your cart is empty. Add products to get started.</p>
         </div>
         <div class="border-t border-gray-200 px-6 py-4">
             <div class="flex items-center justify-between text-sm text-gray-700">
-                <span>Total</span>
+                <span data-i18n="cart_total">Total</span>
                 <span id="cart-total" class="font-semibold text-gray-900">0 CFA</span>
             </div>
             <button id="checkout-button" type="button"
-                class="mt-4 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition">Checkout</button>
+                class="mt-4 w-full rounded-full bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition" data-i18n="checkout_button">Checkout</button>
             <p id="cart-drawer-status" class="mt-3 text-sm text-green-600"></p>
         </div>
     </aside>
@@ -654,7 +649,8 @@
             setInterval(updateTimer, 1000);
         })();
     </script>
-    <script src="app.js"></script>
+    <script src="i18n.js"></script>
+  <script src="app.js"></script>
 </body>
 
 </html>

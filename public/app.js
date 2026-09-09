@@ -67,7 +67,7 @@ function escapeHtml(str) {
 function setUserDisplay() {
   const accountButton = document.getElementById('account-button');
   const mobileAccountButton = document.getElementById('mobile-account-button');
-  const label = currentAuth?.user ? `Hi, ${currentAuth.user.fullName.split(' ')[0]}` : 'Sign in';
+  const label = currentAuth?.user ? t('hi_name', { name: currentAuth.user.fullName.split(' ')[0] }) : t('nav_sign_in');
   if (accountButton) {
     accountButton.textContent = label;
     accountButton.href = 'account.html';
@@ -104,7 +104,7 @@ function renderCartItems() {
   const totalLabel = document.getElementById('cart-total');
   if (!container || !totalLabel) return;
   if (cartItems.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-500">Your cart is empty. Add products from the store.</p>';
+    container.innerHTML = `<p class="text-sm text-gray-500">${t('cart_empty')}</p>`;
     totalLabel.textContent = '0 CFA';
     return;
   }
@@ -204,7 +204,7 @@ function renderProductCard(product) {
             <span class="text-lg font-extrabold text-blue-600">${formatMoney(product.price)}</span>
             ${product.rating ? `<span class="ml-2 text-xs text-yellow-600">${product.rating.toFixed(1)} ★</span>` : ''}
           </div>
-          <button data-id="${id}" class="add-cart-btn rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition">Add</button>
+          <button data-id="${id}" class="add-cart-btn rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition">${t('add')}</button>
         </div>
       </div>
     </article>
@@ -272,13 +272,13 @@ async function loadProducts(listNode, searchInput, category = 'all') {
     // Server handles both search and category filtering — no need to filter again on client
     products = await apiFetch(`/api/products?search=${encodeURIComponent(query)}${categoryQuery}${priceQuery}`);
   } catch (err) {
-    if (listNode) listNode.innerHTML = '<div class="col-span-full rounded-3xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-red-500">Unable to load products.</div>';
+    if (listNode) listNode.innerHTML = `<div class="col-span-full rounded-3xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-red-500">${t('unable_to_load_products')}</div>`;
     return;
   }
 
   if (!listNode) return;
   if (products.length === 0) {
-    listNode.innerHTML = '<div class="col-span-full rounded-3xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">No products matched your search.</div>';
+    listNode.innerHTML = `<div class="col-span-full rounded-3xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">${t('no_products_found')}</div>`;
     return;
   }
 
@@ -448,7 +448,7 @@ async function initWishlistButton(productId) {
   }
 
   const render = () => {
-    btn.textContent = isSaved ? '❤️ Saved' : '🤍 Save';
+    btn.textContent = isSaved ? t('saved') : t('save');
   };
   render();
 
@@ -900,7 +900,7 @@ async function initCheckoutPage() {
 
   const cartItems = loadCart();
   if (cartItems.length === 0) {
-    itemsContainer.innerHTML = '<p class="text-sm text-gray-500">Your cart is empty.</p>';
+    itemsContainer.innerHTML = `<p class="text-sm text-gray-500">${t('cart_empty')}</p>`;
     totalContainer.textContent = '0 CFA';
     if (form) {
       const btn = form.querySelector('button[type="submit"]');
