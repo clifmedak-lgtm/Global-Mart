@@ -16,6 +16,9 @@ const TRANSLATIONS = {
     search_button: 'Search',
     hi_name: 'Hi, {name}',
 
+    // hero 1
+
+
     // Cart drawer
     your_cart: 'Your cart',
     cart_review_items: 'Review items before checkout.',
@@ -184,10 +187,22 @@ function updateLangToggleUI() {
     btn.classList.toggle('text-white', isActive);
     btn.classList.toggle('text-slate-500', !isActive);
   });
+  const lang1 = getLang();
+  document.querySelectorAll('.lang1-toggle-btn').forEach(btn => {
+    const isActive = btn.dataset.lang === lang;
+    btn.classList.toggle('bg-blue-600', isActive);
+    btn.classList.toggle('text-white', isActive);
+    btn.classList.toggle('text-slate-500', !isActive);
+  });
+
 }
 
 function initLanguageToggle() {
   document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => setLang(btn.dataset.lang));
+  });
+  updateLangToggleUI();
+  document.querySelectorAll('.lang1-toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => setLang(btn.dataset.lang));
   });
   updateLangToggleUI();
