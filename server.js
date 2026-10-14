@@ -12,7 +12,7 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const port = process.env.PORT || 3000;
+let port = Number(process.env.PORT) || 3001;
 
 const app = express();
 const prisma = new PrismaClient();
@@ -26,7 +26,7 @@ const NOTCHPAY_PUBLIC_KEY = process.env.NOTCHPAY_PUBLIC_KEY;
 const NOTCHPAY_PRIVATE_KEY = process.env.NOTCHPAY_PRIVATE_KEY;
 const NOTCHPAY_BASE_URL = 'https://api.notchpay.co';
 // Public base URL of this app, used to build NotchPay's callback URL.
-const APP_URL = process.env.APP_URL || `http://localhost:${port}`;
+const getAppUrl = () => process.env.APP_URL || `http://localhost:${port}`;
 
 if (process.env.CLOUDINARY_CLOUD_NAME) {
   cloudinary.config({
@@ -227,7 +227,7 @@ app.post('/api/auth/forgot-password', asyncHandler(async (req, res) => {
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
   await prisma.passwordResetToken.create({ data: { token, userId: user.id, expiresAt } });
 
-  const resetUrl = `${APP_URL}/reset-password.html?token=${token}`;
+  const resetUrl = `${getAppUrl()}/reset-password.html?token=${token}`;
   try {
     await sendEmail({
       to: user.email,
@@ -553,7 +553,7 @@ app.post('/api/payment/initiate', requireAuth, asyncHandler(async (req, res) => 
     phone: order.shippingPhone || undefined,
     reference: order.id,
     description: `Commande GlobalMart #${order.id}`,
-    callback: `${APP_URL}/checkout.html?order=${order.id}`,
+    callback: `${getAppUrl()}/checkout.html?order=${order.id}`,
     channels,
   };
 
@@ -888,10 +888,12 @@ app.get('/api/vendor/stats', requireVendor, asyncHandler(async (req, res) => {
     orders: orders.map(o => {
       const myItems = o.items.filter(isMine);
       const vendorAmount = myItems.reduce((sum, item) => sum + item.vendorEarning, 0);
+      const vendorItemsTotal = myItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
       return {
         id: o.id,
         customerName: o.user.fullName,
         vendorAmount, // this vendor's NET share (after commission) — excludes delivery fee and other vendors' items
+        vendorItemsTotal,
         status: o.status,
         paymentStatus: o.paymentStatus,
         shippingAddress: o.shippingAddress,
@@ -1172,9 +1174,23 @@ app.use((err, req, res, next) => {
 });
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-  });
+  const listen = (candidatePort) => {
+    const server = app.listen(candidatePort, () => {
+      port = candidatePort;
+      console.log(`Server running on http://localhost:${port}`);
+    });
+
+    server.once('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.warn(`Port ${candidatePort} is busy; trying ${candidatePort + 1}...`);
+        listen(candidatePort + 1);
+        return;
+      }
+      throw error;
+    });
+  };
+
+  listen(port);
 }
 
 export default app;

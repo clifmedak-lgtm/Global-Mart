@@ -16,6 +16,7 @@
         .row-hover:hover { background: #f8fafc; }
         .avatar { display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border-radius: 9999px; flex-shrink: 0; }
     </style>
+<link rel="stylesheet" href="theme.css"><script>try{document.documentElement.dataset.theme=localStorage.getItem("globalmart-theme")==="dark"?"dark":"light"}catch{}</script>
 </head>
 
 <body class="bg-slate-50">
@@ -507,7 +508,7 @@
                     <div class="border-t border-b border-slate-100 py-2 my-2">${itemsHtml}</div>
                     <p class="text-sm text-slate-600">📍 ${escapeHtml(o.shippingAddress)}, ${escapeHtml(o.shippingCity)} — ${escapeHtml(o.shippingPhone)}</p>
                     <div class="flex items-center justify-between mt-3 gap-3">
-                        <p class="font-bold text-slate-900">${Number(o.totalAmount || 0).toLocaleString()} CFA</p>
+                        <p class="font-bold text-slate-900">${Number(o.vendorItemsTotal || 0).toLocaleString()} CFA</p>
                         ${o.status === 'PENDING_PAYMENT'
                             ? '<span class="text-xs text-slate-400">Waiting for customer payment</span>'
                             : `<select onchange="updateOrderStatus('${o.id}', this.value)" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-blue-400">${statusOptions}</select>`}
@@ -785,6 +786,8 @@
             </div>
         </div>
     </div>
+<script src="i18n.js"></script>
+<script src="theme-controls.js"></script>
 </body>
 
 </html>

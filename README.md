@@ -74,7 +74,7 @@ npm run prisma:migrate
 
 ```bash
 npm start
-# Visit http://localhost:3000
+# Visit http://localhost:3001 (or the next available port if 3001 is busy)
 ```
 
 ### Scripts
