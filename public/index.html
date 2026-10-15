@@ -28,7 +28,7 @@
 
     <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm" aria-label="Primary navigation">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 gap-4">
+            <div class="flex items-center justify-between h-16 gap-4 lg:gap-6">
                 <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2">
                         <div class="text-3xl">🌐</div>
@@ -44,11 +44,11 @@
                     </button>
                 </div>
 
-                <nav class="hidden md:flex md:items-center md:gap-8">
-                    <a href="#main-content" data-i18n="nav_home" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Home</a>
-                    <a href="#products" data-i18n="nav_products" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Products</a>
-                    <a href="#featured" data-i18n="nav_deals" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Deals</a>
-                    <a href="#footer" data-i18n="nav_contact" class="text-gray-600 hover:text-blue-600 text-sm font-medium">Contact</a>
+                <nav class="hidden md:flex md:items-center md:gap-5 lg:gap-7 shrink-0">
+                    <a href="#main-content" data-i18n="nav_home" class="whitespace-nowrap text-gray-600 hover:text-blue-600 text-sm font-medium">Home</a>
+                    <a href="#products" data-i18n="nav_products" class="whitespace-nowrap text-gray-600 hover:text-blue-600 text-sm font-medium">Products</a>
+                    <a href="#featured" data-i18n="nav_deals" class="whitespace-nowrap text-gray-600 hover:text-blue-600 text-sm font-medium">Deals</a>
+                    <a href="#footer" data-i18n="nav_contact" class="whitespace-nowrap text-gray-600 hover:text-blue-600 text-sm font-medium">Contact</a>
                 </nav>
 
                 <div class="hidden md:flex flex-1 justify-center px-4">
@@ -64,18 +64,18 @@
                     </form>
                 </div>
 
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 lg:gap-5 shrink-0">
                     <div class="hidden sm:flex items-center rounded-full border border-gray-200 p-0.5 text-xs font-semibold">
                         <button type="button" class="lang-toggle-btn rounded-full px-2.5 py-1 transition" data-lang="en">EN</button>
                         <button type="button" class="lang-toggle-btn rounded-full px-2.5 py-1 transition" data-lang="fr">FR</button>
                     </div>
                     <a id="account-button" href="account.html"
-                        class="hidden sm:flex flex-col text-right text-gray-600 hover:text-blue-600 text-sm">
+                        class="hidden sm:flex flex-col whitespace-nowrap text-right text-gray-600 hover:text-blue-600 text-sm">
                         <span class="text-xs text-gray-400" data-i18n="welcome_back">Welcome back</span>
                         <span data-i18n="nav_account">Account</span>
                     </a>
                     <button type="button"
-                        class="open-vendor-modal hidden sm:inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-blue-600" data-i18n="nav_vendor_sign_in">Vendor
+                        class="open-vendor-modal hidden sm:inline-flex shrink-0 whitespace-nowrap items-center justify-center rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-blue-600" data-i18n="nav_vendor_sign_in">Vendor
                         sign in</button>
                     <button id="cart-open-button" type="button"
                         class="relative flex items-center justify-center text-gray-600 hover:text-blue-600"
@@ -91,6 +91,13 @@
 
         <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200 bg-white">
             <div class="space-y-2 px-4 py-4">
+                <div class="flex items-center gap-2 border-b border-gray-100 px-4 pb-3">
+                    <span class="text-sm font-medium text-gray-500" data-i18n="language_label">Language</span>
+                    <div class="flex items-center rounded-full border border-gray-200 p-0.5 text-xs font-semibold">
+                        <button type="button" class="lang-toggle-btn rounded-full px-3 py-1.5 transition" data-lang="en">EN</button>
+                        <button type="button" class="lang-toggle-btn rounded-full px-3 py-1.5 transition" data-lang="fr">FR</button>
+                    </div>
+                </div>
                 <a href="#main-content" class="block rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
                 <a href="#products" class="block rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100">Products</a>
                 <a href="#featured" class="block rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100">Deals</a>

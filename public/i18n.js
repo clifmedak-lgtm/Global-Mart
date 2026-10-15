@@ -6,6 +6,7 @@ const TRANSLATIONS = {
   en: {
     // Header / nav
     nav_home: 'Home',
+    language_label: 'Language',
     nav_products: 'Products',
     nav_deals: 'Deals',
     nav_contact: 'Contact',
@@ -80,6 +81,7 @@ const TRANSLATIONS = {
   },
   fr: {
     nav_home: 'Accueil',
+    language_label: 'Langue',
     nav_products: 'Produits',
     nav_deals: 'Promotions',
     nav_contact: 'Contact',

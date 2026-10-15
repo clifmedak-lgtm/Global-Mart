@@ -159,6 +159,7 @@
   background: transparent;
   box-shadow: none;
 }
+.theme-controls--theme-only { margin-left: 0.35rem; }
 
 .theme-controls__label { color: #64748b; font-size: 12px; }
 .theme-controls__language-group { display: flex; align-items: center; gap: 8px; }
@@ -204,6 +205,12 @@
   }
   .theme-controls__label { display: none; }
   .theme-controls__lang { min-height: 38px; padding-inline: 8px; }
+}
+
+@media (min-width: 768px) {
+  header .lang-toggle-btn { min-width: 2.5rem; padding-inline: 0.75rem; }
+  header #account-button,
+  header .open-vendor-modal { margin-inline: 0.15rem; }
 }
 
 .back-to-top {
