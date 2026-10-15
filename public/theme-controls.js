@@ -38,8 +38,9 @@
   function mountControls() {
     if (document.querySelector('.theme-controls')) return;
     const existingLanguageToggle = document.querySelector('.lang-toggle-btn');
+    const dashboardSidebar = document.querySelector('#vendor-sidebar, #admin-sidebar');
     const host = document.createElement('aside');
-    host.className = `theme-controls${existingLanguageToggle ? ' theme-controls--theme-only' : ''}`;
+    host.className = `theme-controls${existingLanguageToggle ? ' theme-controls--theme-only' : ''}${dashboardSidebar && !existingLanguageToggle ? ' theme-controls--sidebar' : ''}`;
     host.dataset.noTranslate = 'true';
     host.innerHTML = existingLanguageToggle
       ? '<div class="theme-controls__panel"><button class="theme-controls__theme" type="button" aria-pressed="false"></button></div>'
@@ -57,6 +58,8 @@
     if (existingLanguageToggle) {
       const group = existingLanguageToggle.parentElement;
       group.parentElement.insertBefore(host, group.nextSibling);
+    } else if (dashboardSidebar) {
+      dashboardSidebar.append(host);
     } else {
       const cartButton = document.querySelector('header #cart-open-button');
       const target = cartButton?.parentElement;

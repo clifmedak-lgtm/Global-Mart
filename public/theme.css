@@ -124,6 +124,18 @@
   right: max(1rem, env(safe-area-inset-right));
   z-index: 80;
 }
+.theme-controls--sidebar {
+  margin-top: 1rem;
+  width: 100%;
+}
+.theme-controls--sidebar .theme-controls__panel {
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  border-radius: 0.85rem;
+  box-shadow: none;
+}
+.theme-controls--sidebar .theme-controls__language-group { gap: 0.5rem; }
 
 .theme-controls__trigger {
   display: none;

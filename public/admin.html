@@ -23,7 +23,7 @@
     <div class="min-h-screen">
         <div class="md:hidden flex items-center justify-between bg-white/80 backdrop-blur shadow-sm px-4 py-3 sticky top-0 z-40 border-b border-slate-100">
             <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">GlobalMart</h1>
-            <button id="admin-mobile-menu-button" class="rounded-lg border border-slate-200 p-2 text-slate-600">
+            <button id="admin-mobile-menu-button" type="button" aria-expanded="false" aria-controls="admin-sidebar" aria-label="Open admin menu" class="rounded-lg border border-slate-200 p-2 text-slate-600">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
         </div>
@@ -192,6 +192,7 @@
                 const data = await readJson(res);
                 if (!res.ok) throw new Error(data.message || 'Login failed');
                 localStorage.setItem('admin-token', data.token);
+                status.textContent = '';
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
                 showSection('dashboard');
@@ -240,10 +241,40 @@
         function openAdminSidebar() {
             document.getElementById('admin-sidebar')?.classList.remove('-translate-x-full');
             document.getElementById('admin-sidebar-overlay')?.classList.remove('hidden');
+            document.getElementById('admin-mobile-menu-button')?.setAttribute('aria-expanded', 'true');
         }
         function closeAdminSidebar() {
             document.getElementById('admin-sidebar')?.classList.add('-translate-x-full');
             document.getElementById('admin-sidebar-overlay')?.classList.add('hidden');
+            document.getElementById('admin-mobile-menu-button')?.setAttribute('aria-expanded', 'false');
+        }
+
+        async function restoreAdminSession() {
+            if (!localStorage.getItem('admin-token')) return;
+            const status = document.getElementById('admin-login-status');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/stats`, { headers: authHeaders() });
+                if (res.status === 401 || res.status === 403) {
+                    localStorage.removeItem('admin-token');
+                    throw new Error('Your admin session expired. Please sign in again.');
+                }
+                const data = await readJson(res);
+                if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('stat-users').textContent = data.userCount ?? 0;
+                document.getElementById('stat-vendors').textContent = data.vendorCount ?? 0;
+                document.getElementById('stat-products').textContent = data.productCount ?? 0;
+                document.getElementById('stat-orders').textContent = data.paidOrderCount ?? 0;
+                document.getElementById('stat-gmv').textContent = `${(data.totalGMV ?? 0).toLocaleString()} CFA`;
+                document.getElementById('stat-revenue').textContent = `${(data.platformRevenue ?? 0).toLocaleString()} CFA`;
+                document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.toggle('hidden', el.id !== 'section-dashboard'));
+                document.querySelectorAll('.admin-nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === 'dashboard'));
+            } catch (err) {
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
+                if (status) status.textContent = err.message || 'Could not verify your session. Please sign in.';
+            }
         }
 
         async function loadDashboard() {
@@ -439,13 +470,12 @@
         }
 
         window.addEventListener('load', () => {
-            if (localStorage.getItem('admin-token')) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                showSection('dashboard');
-            }
+            restoreAdminSession();
             document.getElementById('admin-mobile-menu-button')?.addEventListener('click', openAdminSidebar);
             document.getElementById('admin-sidebar-overlay')?.addEventListener('click', closeAdminSidebar);
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape') closeAdminSidebar();
+            });
             let debounce = null;
             document.getElementById('admin-product-search')?.addEventListener('input', () => {
                 clearTimeout(debounce);

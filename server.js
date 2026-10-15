@@ -183,12 +183,13 @@ app.post('/api/auth/register', asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Missing registration fields' });
   }
 
-  const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+  const normalizedEmail = email.trim().toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) return res.status(400).json({ success: false, message: 'Email already registered' });
 
   const hashed = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { fullName, email: email.toLowerCase(), password: hashed, role: 'customer' }
+    data: { fullName, email: normalizedEmail, password: hashed, role: 'customer' }
   });
 
   const token = generateToken();
@@ -711,14 +712,15 @@ app.post('/api/vendor/auth/register', asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Missing vendor registration fields' });
   }
 
-  const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+  const normalizedEmail = email.trim().toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) return res.status(400).json({ success: false, message: 'Email already registered' });
 
   const hashed = await bcrypt.hash(password, 10);
   const vendor = await prisma.user.create({
     data: {
       fullName,
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       password: hashed,
       role: 'vendor',
       businessName
@@ -734,7 +736,8 @@ app.post('/api/vendor/auth/register', asyncHandler(async (req, res) => {
 
 app.post('/api/vendor/auth/login', asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  const vendor = await prisma.user.findUnique({ where: { email: email?.toLowerCase() } });
+  const normalizedEmail = email?.trim().toLowerCase();
+  const vendor = normalizedEmail ? await prisma.user.findUnique({ where: { email: normalizedEmail } }) : null;
   if (!vendor || vendor.role !== 'vendor') {
     return res.status(401).json({ success: false, message: 'Invalid vendor credentials' });
   }
