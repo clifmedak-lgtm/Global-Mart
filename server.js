@@ -272,6 +272,32 @@ app.get('/api/recommendations', asyncHandler(async (req, res) => {
   res.json(products);
 }));
 
+app.get('/api/popular-products', asyncHandler(async (req, res) => {
+  const products = await prisma.product.findMany({
+    include: {
+      orderItems: {
+        where: { order: { is: { paymentStatus: 'PAID' } } },
+        select: { quantity: true },
+      },
+      reviews: { select: { id: true } },
+      wishlistItems: { select: { id: true } },
+    },
+  });
+
+  const ranked = products.map(product => {
+    const soldCount = product.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+    const reviewCount = product.reviews.length;
+    const favoriteCount = product.wishlistItems.length;
+    const score = soldCount * 5 + favoriteCount * 2 + reviewCount * 2 + (product.rating || 0);
+    const { orderItems, reviews, wishlistItems, ...publicProduct } = product;
+    return { ...publicProduct, soldCount, reviewCount, favoriteCount, popularityScore: score };
+  }).sort((a, b) => b.popularityScore - a.popularityScore
+    || (b.rating || 0) - (a.rating || 0)
+    || b.createdAt.getTime() - a.createdAt.getTime());
+
+  res.json(ranked.slice(0, 5));
+}));
+
 // ===== REVIEWS =====
 
 app.get('/api/products/:id/reviews', asyncHandler(async (req, res) => {

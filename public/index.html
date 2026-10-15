@@ -28,14 +28,14 @@
 
     <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm" aria-label="Primary navigation">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 gap-4 lg:gap-6">
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2">
+            <div class="flex items-center justify-between h-16 gap-2 sm:gap-4 lg:gap-6">
+                <div class="flex min-w-0 items-center gap-2 sm:gap-4">
+                    <div class="flex items-center gap-1.5 sm:gap-2">
                         <div class="text-3xl">🌐</div>
-                        <a href="#" class="text-3xl font-extrabold text-blue-600 tracking-tight">GlobalMart</a>
+                        <a href="#" class="whitespace-nowrap text-2xl sm:text-3xl font-extrabold text-blue-600 tracking-tight">GlobalMart</a>
                     </div>
                     <button id="mobile-menu-button"
-                        class="md:hidden inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-100"
+                        class="md:hidden inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white p-1.5 sm:p-2 text-gray-600 hover:bg-gray-100"
                         aria-expanded="false" aria-controls="mobile-menu" aria-label="Open mobile menu">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -51,7 +51,7 @@
                     <a href="#footer" data-i18n="nav_contact" class="whitespace-nowrap text-gray-600 hover:text-blue-600 text-sm font-medium">Contact</a>
                 </nav>
 
-                <div class="hidden md:flex flex-1 justify-center px-4">
+                <div class="hidden lg:flex flex-1 justify-center px-2 xl:px-4">
                     <form id="desktop-search" class="w-full max-w-2xl" role="search">
                         <label for="desktop-search-input" class="sr-only">Search products</label>
                         <div
@@ -64,18 +64,18 @@
                     </form>
                 </div>
 
-                <div class="flex items-center gap-3 lg:gap-5 shrink-0">
+                <div class="flex shrink-0 items-center gap-2 sm:gap-3 lg:gap-5">
                     <div class="hidden sm:flex items-center rounded-full border border-gray-200 p-0.5 text-xs font-semibold">
                         <button type="button" class="lang-toggle-btn rounded-full px-2.5 py-1 transition" data-lang="en">EN</button>
                         <button type="button" class="lang-toggle-btn rounded-full px-2.5 py-1 transition" data-lang="fr">FR</button>
                     </div>
                     <a id="account-button" href="account.html"
-                        class="hidden sm:flex flex-col whitespace-nowrap text-right text-gray-600 hover:text-blue-600 text-sm">
+                        class="hidden lg:flex flex-col whitespace-nowrap text-right text-gray-600 hover:text-blue-600 text-sm">
                         <span class="text-xs text-gray-400" data-i18n="welcome_back">Welcome back</span>
                         <span data-i18n="nav_account">Account</span>
                     </a>
                     <button type="button"
-                        class="open-vendor-modal hidden sm:inline-flex shrink-0 whitespace-nowrap items-center justify-center rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-blue-600" data-i18n="nav_vendor_sign_in">Vendor
+                        class="open-vendor-modal hidden lg:inline-flex shrink-0 whitespace-nowrap items-center justify-center rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-blue-600" data-i18n="nav_vendor_sign_in">Vendor
                         sign in</button>
                     <button id="cart-open-button" type="button"
                         class="relative flex items-center justify-center text-gray-600 hover:text-blue-600"
@@ -125,7 +125,7 @@
             style="background: url('https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=1200&q=80'); background-size: cover; background-position: center;">
         </div>
         <div
-            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col md:flex-row items-center justify-between relative z-10">
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
 
             <div class="md:w-1/2 text-center md:text-left z-10">
                 <span class="text-blue-600 font-bold tracking-wider text-sm uppercase mb-4 block">B2B & B2C
@@ -150,28 +150,17 @@
                 </div>
             </div>
 
-            <div class="md:w-1/2 mt-12 md:mt-0 flex justify-center z-10 w-full">
-                <div class="grid grid-cols-1 gap-4 w-full max-w-lg">
-                    <div
-                        class="relative rounded-3xl overflow-hidden h-96 shadow-lg transform hover:scale-105 transition cursor-pointer">
-                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80"
-                            alt="Premium smartphone display" class="w-full h-full object-cover">
-                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5">
-                            <span class="text-sm font-bold text-white">Featured Phone</span>
-                            <p class="text-xs text-gray-200">Ultra-thin display, fast charging, pro camera.</p>
+            <div class="md:w-1/2 flex justify-center z-10 w-full min-w-0">
+                <div id="hero-product-carousel" class="hero-carousel w-full max-w-lg" aria-label="Popular products" aria-roledescription="carousel">
+                    <div class="hero-carousel__viewport">
+                        <div class="hero-carousel__track" aria-live="polite">
+                            <div class="hero-carousel__loading animate-pulse" aria-hidden="true"></div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div
-                            class="bg-blue-50 h-32 rounded-2xl p-4 flex flex-col justify-end transform hover:scale-105 transition cursor-pointer">
-                            <span class="text-sm font-bold text-blue-800">Flash Sale</span>
-                            <span class="text-xs text-blue-600">Up to 40% Off</span>
-                        </div>
-                        <div
-                            class="bg-gray-100 h-32 rounded-2xl p-4 flex flex-col justify-end transform hover:scale-105 transition cursor-pointer">
-                            <span class="text-sm font-bold text-gray-800">New Arrivals</span>
-                            <span class="text-xs text-gray-500">Shop Latest Tech</span>
-                        </div>
+                    <div class="hero-carousel__controls" aria-label="Carousel controls">
+                        <button type="button" class="hero-carousel__arrow" data-carousel-step="-1" aria-label="Previous product">‹</button>
+                        <div class="hero-carousel__dots" role="group" aria-label="Choose a product"></div>
+                        <button type="button" class="hero-carousel__arrow" data-carousel-step="1" aria-label="Next product">›</button>
                     </div>
                 </div>
             </div>

@@ -340,6 +340,7 @@ async function initIndexPage() {
     await loadProducts(document.getElementById('iphone-list'), null, 'iphone');
     await loadProducts(document.getElementById('cases-list'), null, 'cases');
     await loadFlashSale();
+    await loadHeroCarousel();
   } else {
     console.log('Running locally without a server. Using hardcoded HTML layout.');
   }
@@ -354,6 +355,111 @@ async function loadFlashSale() {
   } catch (err) {
     node.innerHTML = '<div class="col-span-full text-center text-sm text-red-500">Unable to load deals.</div>';
   }
+}
+
+async function loadHeroCarousel() {
+  const carousel = document.getElementById('hero-product-carousel');
+  const track = carousel?.querySelector('.hero-carousel__track');
+  const dots = carousel?.querySelector('.hero-carousel__dots');
+  if (!carousel || !track || !dots) return;
+
+  let products;
+  try {
+    products = await apiFetch('/api/popular-products');
+  } catch (err) {
+    console.warn('Unable to load popular products for the hero carousel:', err);
+    try { products = await apiFetch('/api/recommendations'); } catch { products = []; }
+  }
+
+  products = Array.isArray(products) ? products.slice(0, 5) : [];
+  if (!products.length) {
+    carousel.classList.add('hero-carousel--empty');
+    track.innerHTML = '<div class="hero-carousel__empty">Popular products will appear here.</div>';
+    dots.remove();
+    carousel.querySelector('.hero-carousel__controls')?.remove();
+    return;
+  }
+
+  track.innerHTML = products.map((product, index) => {
+    const id = escapeHtml(product.id);
+    const name = escapeHtml(product.name);
+    const vendor = escapeHtml(product.vendor);
+    const image = escapeHtml(product.image || '');
+    const imageMarkup = image
+      ? `<img src="${image}" alt="${name}" class="hero-carousel__image" ${index === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}>`
+      : '<div class="hero-carousel__image hero-carousel__image--empty" aria-hidden="true">📦</div>';
+    const rating = Number(product.rating) > 0
+      ? `<span class="hero-carousel__rating">★ ${Number(product.rating).toFixed(1)}${product.reviewCount ? ` <span>(${product.reviewCount})</span>` : ''}</span>`
+      : '';
+    const popularity = product.soldCount > 0
+      ? `<span class="hero-carousel__popularity">${Number(product.soldCount)} ${getLang() === 'fr' ? 'vendu(s)' : 'sold'}</span>`
+      : '';
+    return `<article class="hero-carousel__slide" role="group" aria-roledescription="slide" aria-label="${index + 1} / ${products.length}">
+      <a class="hero-carousel__product-link" href="product.html?id=${id}" tabindex="${index === 0 ? '0' : '-1'}">
+        <div class="hero-carousel__image-wrap">${imageMarkup}<span class="hero-carousel__rank">#${index + 1} ${getLang() === 'fr' ? 'Populaire' : 'Popular'}</span></div>
+        <div class="hero-carousel__details">
+          <span class="hero-carousel__vendor">${vendor}</span>
+          <h3 class="hero-carousel__name">${name}</h3>
+          <div class="hero-carousel__meta">${rating}${popularity}</div>
+          <span class="hero-carousel__price">${formatMoney(product.price)}</span>
+        </div>
+      </a>
+      <button type="button" data-id="${id}" class="add-cart-btn hero-carousel__add">${t('add')}</button>
+    </article>`;
+  }).join('');
+
+  dots.innerHTML = products.map((product, index) =>
+    `<button type="button" class="hero-carousel__dot${index === 0 ? ' is-active' : ''}" data-carousel-index="${index}" aria-label="${getLang() === 'fr' ? 'Afficher le produit' : 'Show product'} ${index + 1}" aria-current="${index === 0 ? 'true' : 'false'}"></button>`
+  ).join('');
+
+  let activeIndex = 0;
+  let timer;
+  const slides = [...track.children];
+  const dotButtons = [...dots.querySelectorAll('.hero-carousel__dot')];
+  const showSlide = index => {
+    activeIndex = (index + slides.length) % slides.length;
+    track.style.transform = `translateX(-${activeIndex * 100}%)`;
+    slides.forEach((slide, slideIndex) => {
+      const active = slideIndex === activeIndex;
+      slide.setAttribute('aria-hidden', String(!active));
+      slide.inert = !active;
+      const link = slide.querySelector('.hero-carousel__product-link');
+      if (link) link.tabIndex = active ? 0 : -1;
+    });
+    dotButtons.forEach((dot, dotIndex) => {
+      dot.classList.toggle('is-active', dotIndex === activeIndex);
+      dot.setAttribute('aria-current', dotIndex === activeIndex ? 'true' : 'false');
+    });
+  };
+  const stopAutoplay = () => clearInterval(timer);
+  const startAutoplay = () => {
+    stopAutoplay();
+    if (slides.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !document.hidden) {
+      timer = setInterval(() => showSlide(activeIndex + 1), 5200);
+    }
+  };
+
+  carousel.querySelectorAll('[data-carousel-step]').forEach(button => {
+    button.addEventListener('click', () => {
+      showSlide(activeIndex + Number(button.dataset.carouselStep));
+      startAutoplay();
+    });
+  });
+  dots.addEventListener('click', event => {
+    const button = event.target.closest('[data-carousel-index]');
+    if (!button) return;
+    showSlide(Number(button.dataset.carouselIndex));
+    startAutoplay();
+  });
+  carousel.addEventListener('mouseenter', stopAutoplay);
+  carousel.addEventListener('mouseleave', startAutoplay);
+  carousel.addEventListener('focusin', stopAutoplay);
+  carousel.addEventListener('focusout', event => {
+    if (!carousel.contains(event.relatedTarget)) startAutoplay();
+  });
+  document.addEventListener('visibilitychange', () => document.hidden ? stopAutoplay() : startAutoplay());
+  showSlide(0);
+  startAutoplay();
 }
 
 function getQueryParam(name) {
